@@ -1,0 +1,4 @@
+### Required Python modules ###
+
+pygame
+gym

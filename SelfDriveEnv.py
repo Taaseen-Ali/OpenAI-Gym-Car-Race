@@ -1,17 +1,17 @@
-import pygame, sys
-from math import *
+#!/usr/bin/env python
 
-block_width = 50
-block_height = 50
-num_blocks_x = 10
-num_blocks_y = 10
+import pygame, sys, time
+from math import *
+import gym
+from gym import spaces
+
 
 class Car:
     def __init__(self, x, y, num_sensors):
         self.track = None
         self.image = pygame.image.load("Audi.png")
         self.image = pygame.transform.scale(self.image, (50, 50))        
-        self.angle = 180
+        self.angle = 90
         self.pos = [x, y]        
         
         self.sensors = [[0, 0,  i*(180.0/num_sensors), 0] for i in range(num_sensors + 1)]
@@ -98,7 +98,7 @@ class Car:
 
     def has_crashed(self):
         x, y = self.get_car_tip()
-        return track.colliding_with(x, y)
+        return self.track.colliding_with(x, y)
     
     def move_forward_by(self, dist):
         offset = 90
@@ -144,12 +144,13 @@ class TrackBorder:
         self.color = color
         self.active = True
         self.index = index
+        self.mutable = True
     
     def check_state(self):
         mouse_pos = pygame.mouse.get_pos()
         pressed_state = pygame.mouse.get_pressed()
         x, y, w, h = self.dimensions
-        if x+w > mouse_pos[0] > x and y + h > mouse_pos[1] > y and pressed_state[0]:
+        if x+w > mouse_pos[0] > x and y + h > mouse_pos[1] > y and pressed_state[0] and self.mutable:
             self.set_active(False)            
     
     def set_active(self, state):
@@ -162,28 +163,54 @@ class TrackBorder:
             pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
 
 
-class Track: 
-    def __init__(self, num_x, num_y, width, height):        
+class Track(gym.Env): 
+    def __init__(self, num_blocks_x, num_blocks_y, block_width, block_height):        
+        super(Track, self).__init__()
         pygame.init()
+        self.num_blocks_x, self.num_blocks_y = num_blocks_x, num_blocks_y
+        self.action_space = spaces.Tuple((spaces.Discrete(3), spaces.Discrete(3)))
+        self.observation_space = spaces.Box(low=0, high=10000, shape=(1, 10))
+        self.initialized = False
         
         self.clock = pygame.time.Clock()
         self.screen_width, self.screen_height = block_width * num_blocks_x, block_height * num_blocks_y
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-
+        self.screen = None
+        
         self.color = (255, 0, 255)
-        self.track = [[TrackBorder(x*width, y*height, width, height, self.color, (x,y)) for x in range(-1,num_x+1)] for y in range(-1, num_y+1)]
+        self.track = [[TrackBorder(x*block_width, y*block_height, block_width, block_height, self.color, (x,y)) for x in range(-1,num_blocks_x+1)] for y in range(-1, num_blocks_y+1)]
         self.cars = []
+    
+    def open_window(self):
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        
+    def close_window(self):
+        pygame.display.quit()
+        self.screen = None
+    
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.close_window()
 
-    def init(self):
-        for i in range(1, 10):
-            for j in range(1, 10):
-                self.track[i][j].active = False
+    def reset(self):
+        self.open_window()
+        while self.screen:
+            self.render()
+        self.close_window()
+        self.initialized = True
+        for row in self.track:
+            for border in row:
+                border.mutable = False
         
     def colliding_with(self, x, y):    
         for row in self.track:
             for border in row:
                 if border.rect.collidepoint(x,y) and border.active:
-                    return True
+                    return border.index
         return False  
     
     def current_tile(self, car):
@@ -192,23 +219,22 @@ class Track:
             for border in row:
                 if border.rect.collidepoint(x, y):
                     return border.index     
-    
+
     def render(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+        if not self.screen and self.initialized:
+            self.open_window()
         self.screen.fill((30,30,30))
         self.clock.tick(60)
-        for j in range(num_blocks_x+2):
-            for k in range(num_blocks_y+2):
+        for j in range(self.num_blocks_x+2):
+            for k in range(self.num_blocks_y+2):
                 tile = self.track[k][j]
                 if(tile.active):
                     tile.render(self.screen)
         for car in self.cars:
-            car.render(self.screen)
+            car.render(self.screen)        
         pygame.display.flip()
-
+        self.handle_events()
+    
     def add_car(self, car):
         self.cars.append(car)
         car.set_track(self)
@@ -219,22 +245,3 @@ class Track:
         obs, reward, done, _ = car.step(action)
         return obs, reward, done, _
 
-track = Track(num_blocks_x, num_blocks_y, block_width, block_height)
-car = Car(300, 0, 10)
-track.add_car(car)
-track.init()
-counter = 0
-done = False
-total_reward = 0
-obs = []
-
-while not done: 
-    track.render()
-    action = (car.ACCELERATE, car.REST)
-    if 40 > counter > 25:
-        action = (car.DECELERATE, car.ACCEL_RIGHT)
-    counter += 1        
-    obs, reward, done, _ = track.step(action)
-    total_reward += reward
-
-print(total_reward)
