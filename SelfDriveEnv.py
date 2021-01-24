@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import pygame, sys, time
+import numpy as np
 from math import *
 import gym
 from gym import spaces
@@ -27,10 +28,10 @@ class Car:
         self.max_turn_rate = 3
         
         self.REST = 0
-        self.DECELERATE = 1        
-        self.ACCELERATE = 2
-        self.ACCEL_LEFT = 1
-        self.ACCEL_RIGHT = 2
+        self.DECELERATE = -1        
+        self.ACCELERATE = 1
+        self.ACCEL_LEFT = -1
+        self.ACCEL_RIGHT = 1
     
         self.NEW_TILE_REWARD = 10
         self.SAME_TILE_REWARD = -1
@@ -57,7 +58,6 @@ class Car:
             sensor[0], sensor[1] = center
 
     def update_sensors(self):
-        observations = []
         self.center_sensors()
         offset = 90
         for sensor in self.sensors:
@@ -69,8 +69,7 @@ class Car:
             x0, y0 = self.get_car_tip()
             x1, y1, = sensor[0], sensor[1]
             sensor[3] = self.dist(x0, y0, x1, y1)
-            observations.append(sensor[3])
-        return observations
+        return np.array([sensor[3] for sensor in self.sensors])
     
     def render(self, screen):
         color = (255, 255, 0)
@@ -168,8 +167,9 @@ class Track(gym.Env):
         super(Track, self).__init__()
         pygame.init()
         self.num_blocks_x, self.num_blocks_y = num_blocks_x, num_blocks_y
-        self.action_space = spaces.Tuple((spaces.Discrete(3), spaces.Discrete(3)))
-        self.observation_space = spaces.Box(low=0, high=10000, shape=(1, 10))
+        """ self.action_space = spaces.Tuple((spaces.Discrete(3), spaces.Discrete(3))) """
+        self.action_space = spaces.Box(np.full((2), -1), np.full((2), 1), dtype="int16" )
+        self.observation_space = spaces.Box(np.zeros((11)), np.full((11), inf))
         self.initialized = False
         
         self.clock = pygame.time.Clock()
@@ -205,6 +205,8 @@ class Track(gym.Env):
         for row in self.track:
             for border in row:
                 border.mutable = False
+        print(self.cars[0].update_sensors())
+        return self.cars[0].update_sensors()
         
     def colliding_with(self, x, y):    
         for row in self.track:
