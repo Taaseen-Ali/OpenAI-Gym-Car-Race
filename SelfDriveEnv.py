@@ -28,15 +28,21 @@ class Car:
         self.max_turn_rate = 3
         
         self.REST = 0
-        self.DECELERATE = -1        
-        self.ACCELERATE = 1
-        self.ACCEL_LEFT = -1
-        self.ACCEL_RIGHT = 1
+        self.DECELERATE = 1        
+        self.ACCELERATE = 2
+        self.ACCEL_LEFT = 1
+        self.ACCEL_RIGHT = 2
     
-        self.NEW_TILE_REWARD = 10
+        self.NEW_TILE_REWARD = 100
         self.SAME_TILE_REWARD = -1
+        self.CRASH_REWARD = -10000
         self.traveled = []
-    
+
+    def reset(self):
+        self.pos = [300, 100]
+        self.angle = 90
+        self.center_sensors()
+
     def set_track(self, track):
         self.track = track
     
@@ -106,7 +112,7 @@ class Car:
         return (x + dist * cos(rad_angle), y + dist * sin(rad_angle))
     
     def move(self):
-        if self.crashed: return -100
+        if self.crashed: return self.CRASH_REWARD
 
         reward = 0
         self.angle += self.rotation
@@ -115,7 +121,7 @@ class Car:
         
         if curr_tile not in self.traveled:
             self.traveled.append(curr_tile)
-            reward = self.NEW_TILE_REWARD
+            reward = self.NEW_TILE_REWARD        
         else: reward = self.SAME_TILE_REWARD
         return reward
     
@@ -168,7 +174,7 @@ class Track(gym.Env):
         pygame.init()
         self.num_blocks_x, self.num_blocks_y = num_blocks_x, num_blocks_y
         """ self.action_space = spaces.Tuple((spaces.Discrete(3), spaces.Discrete(3))) """
-        self.action_space = spaces.Box(np.full((2), -1), np.full((2), 1), dtype="int16" )
+        self.action_space = spaces.MultiDiscrete([3,3])
         self.observation_space = spaces.Box(np.zeros((11)), np.full((11), inf))
         self.initialized = False
         
@@ -187,6 +193,27 @@ class Track(gym.Env):
         pygame.display.quit()
         self.screen = None
     
+    def load_track(self):
+        with open("track.csv") as f:
+                content = f.readlines()
+        content = [x.strip().split() for x in content] 
+        for row in range(len(content)):
+            for col in range(len(content[row])):
+                if content[row][col] == "1":
+                    self.track[row][col].active = True
+                else: self.track[row][col].active = False
+    
+    def save_track(self):
+        with open("track.csv", "a") as f:
+            f.seek(0)
+            f.truncate()
+            for row in self.track:
+                for border in row:
+                    if border.active:
+                        f.write("1 ")
+                    else: f.write("0 ")
+                f.write("\n")
+    
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -196,16 +223,20 @@ class Track(gym.Env):
                 if event.key == pygame.K_ESCAPE:
                     self.close_window()
 
-    def reset(self):
-        self.open_window()
-        while self.screen:
-            self.render()
-        self.close_window()
-        self.initialized = True
-        for row in self.track:
-            for border in row:
-                border.mutable = False
-        print(self.cars[0].update_sensors())
+    def reset(self, new=False):
+        if new:
+            self.open_window()
+            while self.screen:
+                self.render()
+            self.close_window()
+            for row in self.track:
+                for border in row:
+                    border.mutable = False
+            self.save_track()
+        else:
+            self.load_track()
+        self.cars[0].reset()
+        self.initialized = True            
         return self.cars[0].update_sensors()
         
     def colliding_with(self, x, y):    
