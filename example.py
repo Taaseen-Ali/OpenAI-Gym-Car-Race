@@ -2,21 +2,22 @@ from SelfDriveEnv import Car, Track
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import PPO
 
-block_width = 50
-block_height = 50
-num_blocks_x = 10
-num_blocks_y = 10
+import config as cfg
 
-env = Track(num_blocks_x, num_blocks_y, block_width, block_height)
-car = Car(300, 100, 10)
+env = Track(cfg.track['num_blocks_x'], cfg.track['num_blocks_y'], 
+            cfg.track['block_width'], cfg.track['block_height'])
+car = Car(cfg.car['position'][0], cfg.car['position'][1], 
+          cfg.car['num_sensors'])
 env.add_car(car)
 
 model = PPO('MlpPolicy', env, verbose=1)
-model.learn(total_timesteps=40000)
+# model.learn(total_timesteps=40000)
 
 
-env = Track(num_blocks_x, num_blocks_y, block_width, block_height)
-car = Car(300, 100, 10)
+env = Track(cfg.track['num_blocks_x'], cfg.track['num_blocks_y'], 
+            cfg.track['block_width'], cfg.track['block_height'])
+car = Car(cfg.car['position'][0], cfg.car['position'][1], 
+          cfg.car['num_sensors'])
 env.add_car(car)
 obs = env.reset()
 done = False
