@@ -29,11 +29,11 @@ class Car:
         self.turn_rate = cfg.movement['turn_rate']
         self.max_turn_rate = cfg.movement['max_turn_rate']
         
-        self.REST = cfg.state['rest']
-        self.DECELERATE = cfg.state['decelerate']
-        self.ACCELERATE = cfg.state['accelerate']
-        self.ACCEL_LEFT = cfg.state['accel_left']
-        self.ACCEL_RIGHT = cfg.state['accel_right']
+        self.REST = cfg.action['rest']
+        self.DECELERATE = cfg.action['decelerate']
+        self.ACCELERATE = cfg.action['accelerate']
+        self.ACCEL_LEFT = cfg.action['accel_left']
+        self.ACCEL_RIGHT = cfg.action['accel_right']
     
         self.NEW_TILE_REWARD = cfg.reward['new_tile_reward']
         self.SAME_TILE_REWARD = cfg.reward['same_tile_reward']
