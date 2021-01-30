@@ -56,7 +56,7 @@ num_blocks_y = 10
 env = Track(num_blocks_x, num_blocks_y, block_width, block_height)
 car = Car(300, 0, 10)
 env.add_car(car)
-env.reset()
+env.reset(True)
 
 done = False
 total_reward = 0

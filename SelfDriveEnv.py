@@ -14,7 +14,6 @@ class Car:
         self.image = pygame.transform.scale(self.image, (50, 50))        
         self.angle = 90
         self.pos = [x, y]
-        #position of car should be determined by the start block
         
         self.sensors = [[0, 0,  i*(180.0/num_sensors), 0] for i in 
             range(num_sensors + 1)]
@@ -136,7 +135,7 @@ class Car:
         #This done variable can be used to tweak the reward
         done = False
         if pos:
-            done = self.track[pos[0]][pos[1]].start_finish == "finish"
+            done = self.track.track[pos[0]][pos[1]].start_finish == "finish"
             self.crashed = True
         accel, rot = action
         if accel == self.ACCELERATE and self.speed < self.max_speed:
@@ -197,7 +196,7 @@ class TrackBorder:
 
 
 class Track(gym.Env): 
-    def __init__(self, num_blocks_x, num_blocks_y, block_width, block_height):        
+    def __init__(self, num_blocks_x, num_blocks_y, block_width, block_height):      
         super(Track, self).__init__()
         pygame.init()
         self.num_blocks_x, self.num_blocks_y = num_blocks_x, num_blocks_y
@@ -217,10 +216,8 @@ class Track(gym.Env):
             block_height, self.color, (x,y)) for x in range(-1,num_blocks_x+1)
             ] for y in range(-1, num_blocks_y+1)]
         self.cars = []
-
-        #start finish coords
-        self.start_locs = []
-        self.finish_locs = []
+        self.start_locs = []    #start coordinates
+        self.finish_locs = []   #finish coordinates
         
     def open_window(self):
         self.screen = pygame.display.set_mode((self.screen_width, 
@@ -276,7 +273,6 @@ class Track(gym.Env):
             self.open_window()
             while self.screen:
                 self.render()
-            self.close_window()
             for row in self.track:
                 for border in row:
                     border.mutable = False
@@ -284,7 +280,8 @@ class Track(gym.Env):
         else:
             self.load_track()
         self.cars[0].reset()
-        self.calc_pos()
+        self.start_locs = self.calc_avg_pos("start")
+        self.finish_locs = self.calc_avg_pos("finish")
         self.cars[0].set_pos(self.start_locs)
         self.initialized = True            
         return self.cars[0].update_sensors()
@@ -313,38 +310,29 @@ class Track(gym.Env):
         for j in range(self.num_blocks_x+2):
             for k in range(self.num_blocks_y+2):
                 tile = self.track[k][j]
-                if(tile.active):
-                    tile.render(self.screen)
+                tile.render(self.screen)
         for car in self.cars:
             car.render(self.screen)        
         pygame.display.flip()
         self.handle_events()
     
-    def calc_pos(self):
+    def calc_avg_pos(self, start_finish):
+        """calculates the average of the coordinates"""
+        coords = []
         for row in self.track:
             for box in row:
-                if box.start_finish == "start":
-                    self.start_locs.append(box.dimensions[:2])
-                elif box.start_finish == "finish":
-                    self.finish_locs.append(box.dimensions[:2])
-        if len(self.start_locs) > 1:
+                if box.start_finish == start_finish:
+                    coords.append(box.dimensions[:2])
+        if len(coords) > 1:
             x, y = 0, 0
-            for coord in self.start_locs:
+            for coord in coords:
                 x += coord[0]
                 y += coord[1]
-            x /= len(self.start_locs)
-            y /= len(self.start_locs)
-            self.start_locs = [x,y]
-        else: self.start_locs = list(self.start_locs)
-        if len(self.finish_locs) > 1:
-            x, y = 0, 0
-            for coord in self.finish_locs:
-                x += coord[0]
-                y += coord[1]
-            x /= len(self.finish_locs)
-            y /= len(self.finish_locs)
-            self.finish_locs = [x,y]
-        else: self.finish_locs = list(self.finish_locs)
+            x /= len(coords)
+            y /= len(coords)
+            coords = [x,y]
+        else: coords = list(coords)
+        return coords
 
     def add_car(self, car):
         self.cars.append(car)
