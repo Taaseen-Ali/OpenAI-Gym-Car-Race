@@ -6,44 +6,46 @@ from math import *
 import gym
 from gym import spaces
 
+import config as cfg
 
 class Car:
     def __init__(self, x, y, num_sensors):
         self.track = None
         self.image = pygame.image.load("Audi.png")
         self.image = pygame.transform.scale(self.image, (50, 50))        
-        self.angle = 90
-        self.pos = [x, y]
+        self.angle = cfg.car['angle']
+        self.pos = [x, y]        
         
         self.sensors = [[0, 0,  i*(180.0/num_sensors), 0] for i in 
             range(num_sensors + 1)]
         self.center_sensors()
         self.crashed = False 
-        self.speed = 0
-        self.rotation = 0
+        self.speed = cfg.car['speed']
+        self.rotation = cfg.car['rotation']
 
-        self.acceleration = .4
-        self.max_speed = 10
+        self.acceleration = cfg.movement['acceleration']
+        self.max_speed = cfg.movement['max_speed']
 
-        self.turn_rate = .2
-        self.max_turn_rate = 3
+        self.turn_rate = cfg.movement['turn_rate']
+        self.max_turn_rate = cfg.movement['max_turn_rate']
         
-        self.REST = 0
-        self.DECELERATE = 1        
-        self.ACCELERATE = 2
-        self.ACCEL_LEFT = 1
-        self.ACCEL_RIGHT = 2
+        self.REST = cfg.state['rest']
+        self.DECELERATE = cfg.state['decelerate']
+        self.ACCELERATE = cfg.state['accelerate']
+        self.ACCEL_LEFT = cfg.state['accel_left']
+        self.ACCEL_RIGHT = cfg.state['accel_right']
     
-        self.NEW_TILE_REWARD = 100
-        self.SAME_TILE_REWARD = -1
-        self.CRASH_REWARD = -10000
+        self.NEW_TILE_REWARD = cfg.reward['new_tile_reward']
+        self.SAME_TILE_REWARD = cfg.reward['same_tile_reward']
+        self.CRASH_REWARD = cfg.reward['crash_reward']
         self.traveled = []
     
     def set_pos(self, coord):
         self.pos = coord
 
     def reset(self):
-        self.angle = 90
+        self.pos = cfg.car['position']
+        self.angle = cfg.car['angle']
         self.center_sensors()
 
     def set_track(self, track):
