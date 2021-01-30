@@ -16,7 +16,8 @@ class Car:
         self.angle = cfg.car['angle']
         self.pos = [x, y]        
         
-        self.sensors = [[0, 0,  i*(180.0/num_sensors), 0] for i in range(num_sensors + 1)]
+        self.sensors = [[0, 0,  i*(180.0/num_sensors), 0] for i in 
+            range(num_sensors + 1)]
         self.center_sensors()
         self.crashed = False 
         self.speed = cfg.car['speed']
@@ -38,6 +39,9 @@ class Car:
         self.SAME_TILE_REWARD = cfg.reward['same_tile_reward']
         self.CRASH_REWARD = cfg.reward['crash_reward']
         self.traveled = []
+    
+    def set_pos(self, coord):
+        self.pos = coord
 
     def reset(self):
         self.pos = cfg.car['position']
@@ -93,13 +97,15 @@ class Car:
     
     def blitRotateCenter(self, screen, image, topleft, angle):
         rotated_image = pygame.transform.rotate(image, angle)
-        new_rect = rotated_image.get_rect(center = image.get_rect(topleft = topleft).center)
+        new_rect = rotated_image.get_rect(center = image.get_rect(
+            topleft = topleft).center)
         screen.blit(rotated_image, new_rect.topleft)
 
     def rotate_image_rect(self, image, angle, pos):
         x, y, = pos
         rotated_image = pygame.transform.rotate(image, angle)
-        new_rect = rotated_image.get_rect(center = image.get_rect(center = (x, y)).center)
+        new_rect = rotated_image.get_rect(center = image.get_rect(
+            center = (x, y)).center)
         return new_rect
 
     def has_crashed(self):
@@ -127,7 +133,11 @@ class Car:
         return reward
     
     def step(self, action):
-        if self.has_crashed():
+        pos = self.has_crashed()
+        #This done variable can be used to tweak the reward
+        done = False
+        if pos:
+            done = self.track.track[pos[0]][pos[1]].start_finish == "finish"
             self.crashed = True
         accel, rot = action
         if accel == self.ACCELERATE and self.speed < self.max_speed:
@@ -146,49 +156,74 @@ class Car:
 class TrackBorder: 
     def __init__(self, x, y, width, height, color, index):
         self.dimensions = (x, y, width, height)
-        self.rect = pygame.Rect(x, y, width, height)
+        self.rect = pygame.Rect(self.dimensions[0], self.dimensions[1],
+            self.dimensions[2], self.dimensions[3])
         self.color = color
         self.active = True
         self.index = index
         self.mutable = True
-    
+
+        #start and finish variables
+        self.st_color = (0,128,0)
+        self.fin_color = (255,0,0)
+        self.start_finish = None
+
     def check_state(self):
         mouse_pos = pygame.mouse.get_pos()
         pressed_state = pygame.mouse.get_pressed()
+        keys = pygame.key.get_pressed()
         x, y, w, h = self.dimensions
-        if x+w > mouse_pos[0] > x and y + h > mouse_pos[1] > y and pressed_state[0] and self.mutable:
-            self.set_active(False)            
-    
-    def set_active(self, state):
-        self.active = state
+        if x+w > mouse_pos[0] > x and y + h > mouse_pos[1] > y:
+            if pressed_state[0] and self.mutable and self.active:
+                self.active = False
+            elif pressed_state[2] and self.mutable and not self.active:
+                self.active = True
+            elif keys[pygame.K_s]:
+                self.start_finish = "start"
+            elif keys[pygame.K_f]:
+                self.start_finish = "finish"
 
     def render(self, screen):
         self.check_state()
-        if(self.active):
-            pygame.draw.rect(screen, self.color, self.rect)
-            pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
+        if self.active:
+            if not self.start_finish:
+                pygame.draw.rect(screen, self.color, self.rect)
+                pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
+            elif self.start_finish == "start":
+                pygame.draw.rect(screen, self.st_color, self.rect)
+                pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
+            elif self.start_finish == "finish":
+                pygame.draw.rect(screen, self.fin_color, self.rect)
+                pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
 
 
 class Track(gym.Env): 
-    def __init__(self, num_blocks_x, num_blocks_y, block_width, block_height):        
+    def __init__(self, num_blocks_x, num_blocks_y, block_width, block_height):      
         super(Track, self).__init__()
         pygame.init()
         self.num_blocks_x, self.num_blocks_y = num_blocks_x, num_blocks_y
         """ self.action_space = spaces.Tuple((spaces.Discrete(3), spaces.Discrete(3))) """
         self.action_space = spaces.MultiDiscrete([3,3])
-        self.observation_space = spaces.Box(np.zeros((11)), np.full((11), inf))
+        self.observation_space = spaces.Box(np.zeros((11)), \
+            np.full((11), inf))
         self.initialized = False
         
         self.clock = pygame.time.Clock()
-        self.screen_width, self.screen_height = block_width * num_blocks_x, block_height * num_blocks_y
+        self.screen_width, self.screen_height = block_width * num_blocks_x, \
+            block_height * num_blocks_y
         self.screen = None
         
-        self.color = (255, 0, 255)
-        self.track = [[TrackBorder(x*block_width, y*block_height, block_width, block_height, self.color, (x,y)) for x in range(-1,num_blocks_x+1)] for y in range(-1, num_blocks_y+1)]
+        self.color = (87,46,140)    #gotta be nyu purple
+        self.track = [[TrackBorder(x*block_width, y*block_height, block_width,
+            block_height, self.color, (x,y)) for x in range(-1,num_blocks_x+1)
+            ] for y in range(-1, num_blocks_y+1)]
         self.cars = []
-    
+        self.start_locs = []    #start coordinates
+        self.finish_locs = []   #finish coordinates
+        
     def open_window(self):
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen = pygame.display.set_mode((self.screen_width, 
+            self.screen_height))
         
     def close_window(self):
         pygame.display.quit()
@@ -200,9 +235,14 @@ class Track(gym.Env):
         content = [x.strip().split() for x in content] 
         for row in range(len(content)):
             for col in range(len(content[row])):
-                if content[row][col] == "1":
+                if content[row][col] == '0':
+                    self.track[row][col].active = False
+                else:
                     self.track[row][col].active = True
-                else: self.track[row][col].active = False
+                    if content[row][col] == 's':
+                        self.track[row][col].start_finish = "start"
+                    elif content[row][col] == 'f':
+                        self.track[row][col].start_finish = "finish"
     
     def save_track(self):
         with open("track.csv", "a") as f:
@@ -210,10 +250,16 @@ class Track(gym.Env):
             f.truncate()
             for row in self.track:
                 for border in row:
-                    if border.active:
+                    if border.active and not border.start_finish:
                         f.write("1 ")
+                    elif border.active and border.start_finish:
+                        if border.start_finish == "start":
+                            f.write("s ")
+                        elif border.start_finish == "finish":
+                            f.write("f ")
                     else: f.write("0 ")
                 f.write("\n")
+            
     
     def handle_events(self):
         for event in pygame.event.get():
@@ -229,7 +275,6 @@ class Track(gym.Env):
             self.open_window()
             while self.screen:
                 self.render()
-            self.close_window()
             for row in self.track:
                 for border in row:
                     border.mutable = False
@@ -237,15 +282,20 @@ class Track(gym.Env):
         else:
             self.load_track()
         self.cars[0].reset()
+        self.start_locs = self.calc_avg_pos("start")
+        self.finish_locs = self.calc_avg_pos("finish")
+        self.cars[0].set_pos(self.start_locs)
         self.initialized = True            
         return self.cars[0].update_sensors()
+
         
     def colliding_with(self, x, y):    
         for row in self.track:
             for border in row:
-                if border.rect.collidepoint(x,y) and border.active:
+                if border.rect.collidepoint(x,y) and border.active and \
+                    not border.start_finish:
                     return border.index
-        return False  
+        return False
     
     def current_tile(self, car):
         x, y = car.get_car_center()
@@ -262,13 +312,30 @@ class Track(gym.Env):
         for j in range(self.num_blocks_x+2):
             for k in range(self.num_blocks_y+2):
                 tile = self.track[k][j]
-                if(tile.active):
-                    tile.render(self.screen)
+                tile.render(self.screen)
         for car in self.cars:
             car.render(self.screen)        
         pygame.display.flip()
         self.handle_events()
     
+    def calc_avg_pos(self, start_finish):
+        """calculates the average of the coordinates"""
+        coords = []
+        for row in self.track:
+            for box in row:
+                if box.start_finish == start_finish:
+                    coords.append(box.dimensions[:2])
+        if len(coords) > 1:
+            x, y = 0, 0
+            for coord in coords:
+                x += coord[0]
+                y += coord[1]
+            x /= len(coords)
+            y /= len(coords)
+            coords = [x,y]
+        else: coords = list(coords)
+        return coords
+
     def add_car(self, car):
         self.cars.append(car)
         car.set_track(self)
