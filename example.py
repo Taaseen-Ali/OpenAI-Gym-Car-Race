@@ -43,7 +43,7 @@ car = Car(cfg.car['position'][0], cfg.car['position'][1],
           cfg.car['num_sensors'])
 env.add_car(car)
 
-obs = env.reset(new=True) # You can omit new=True if you'd like to use a saved track
+obs = env.reset(new=False) # You can omit new=True if you'd like to use a saved track
 
 done = False
 while not done:

@@ -9,34 +9,38 @@ the repo: https://github.com/Taaseen-Ali/OpenAI-Gym-Car-Race
 # Default car settings
 
 car = {
-    "position" : [300, 100],    # Starting x, y position of the car. Note that
+    # Initial defaults
+
+    "position": [100, 100],     # Starting x, y position of the car. Note that
                                 # this will be deprecated soon because of
                                 # https://github.com/Taaseen-Ali/OpenAI-Gym-Car-Race/pull/7
-
-    "angle" : 90,               # Initial direction of the car
-    "num_sensors" : 10,         # Number of sensor percepts (red dots)
-    "speed" : 0,                # Starting speed/angular velocity (these will be
-    "rotation" : 0              # removed soon)
-
+    "width": 50,                # Box width/height of the car
+    "height": 50,               
+    "angle": 90,                # Initial direction of the car
+    "num_sensors": 10,          # Number of sensor percepts (red dots)
+    "speed": 0,                 # Starting speed/angular velocity (these will be
+    "rotation": 0,              # removed soon)
+    "image": "Audi.png",        # Path to image file for rendering the car
+    
+    # Car movement
+    
+    "acceleration": 0.4,        # The acceleration of the car
+    "max_speed": 5,             # Top speed 
+    "turn_rate": 0.2,           # How quickly the car is able to turn
+    "max_turn_rate": 4          # Maximum turning ability of the car 
     }
 
 
 # Default track settings
 
 track = {
-    "block_width" : 50,         # Width and height of each individual block
-    "block_height" : 50,
-    "num_blocks_x" : 10,        # Number of blocks in the x/y direction
-    "num_blocks_y" : 10
-    }
-
-# Car movement settings
-
-movement = {
-    "acceleration" : 0.4,       # The accelration of the car
-    "max_speed" : 10,           # Top speed 
-    "turn_rate" : 0.2,          # How quickly the car is able to turn
-    "max_turn_rate" : 3         # Maximum turning ability of the car    
+    "block_width": 50,          # Width and height of each individual block
+    "block_height": 50,
+    "num_blocks_x": 10,         # Number of blocks in the x/y direction
+    "num_blocks_y": 10, 
+    "start_line_color": (0, 128, 0),    # Staring/finish/normal block colors
+    "finish_line_color": (255, 0, 0),
+    "default_color": (87, 46, 140)
     }
 
 # Mapping of actions to numerical action state values 
