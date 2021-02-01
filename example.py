@@ -11,7 +11,7 @@ import config as cfg
 # the model that you want to load/save
 
 model_dir = "./models/"
-model_name = "no-crash-penalty-longer2"
+model_name = "model1"
 os.makedirs(model_dir, exist_ok=True)
 
 # Set up the environment using the values found in configs
@@ -33,13 +33,13 @@ env.add_car(car)
 model = PPO.load(model_dir + model_name)
 
 # B. Create and train a new model
-# model = PPO('MlpPolicy', env, verbose=1)
-# model.learn(total_timesteps=40000) 
-# model.save(model_dir + model_name)
+""" model = PPO('MlpPolicy', env, verbose=1)
+model.learn(total_timesteps=10000) 
+model.save(model_dir + model_name) """
 
 # C. Load an existing model and keep training with it
 # model = PPO.load(model_dir + model_name)
-# model.learn(total_timesteps=40000) 
+# model.learn(total_timesteps=10000) 
 # model.save(model_dir + model_name)
 
 # Reset the env
@@ -50,7 +50,7 @@ car = Car(cfg.car['position'][0], cfg.car['position'][1],
           cfg.car['num_sensors'])
 env.add_car(car)
 
-obs = env.reset(new=False) # You can omit new=True if you'd like to use a saved track
+obs = env.reset(new=True) # You can omit new=True if you'd like to use a saved track
 
 # Run the simulation until the car crashes or finishes
 

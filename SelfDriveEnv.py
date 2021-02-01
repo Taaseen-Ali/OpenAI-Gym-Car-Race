@@ -233,28 +233,85 @@ class Track(gym.Env):
         return obs, reward, done, _
 
 
-class Utils:
-    """Collection of commonly used utility methods."""
+class TrackBorder: 
+    """Class representing a single block on the simulation
+
+    A TrackBorder can have 4 main states: Active, inactive, start and finish. An
+    active TrackBorder respresents a wall. Start and finish TrackBorders
+    represent starting and finishing lines respectively. Inactive TrackBorders
+    are not rendered and do not exist from the perspective of the car
+
+    Attributes:
+        dimenstions:    ((int, int, int, int))
+            The x, y, width and height of the TrackBorder in pixels    
+        rect:  (pygame.rect)
+            Pygame rect representing this class
+        start_color:    (int, int , int)
+            Color of starting line TrackBorders
+        finish_color:   (int, int, int)
+            Color of finish line TrackBorders
+        default_color:  (int, int, int)
+            Color of regular active TrackBorders        
+        border_color:   (int, int, int)
+            Color of the outline on a TrackBorders        
+        active: (bool)
+            Represents whether or not the TrackBorder should be used
+            rendering/collisions
+        start_finish:   (string | None)
+            Denotes whether the track is used in a starting line ("start"),
+            finish line ("finish") or neither (None)
+        index:          ([int, int])
+            A list containing the row, col position of this TrackBorder in an
+            array of TrackBorders
+
+        mutable:        (bool)
+            False to lock a TrackBorder from changes (like mouse clicks, for example)
+    """
     
-    @staticmethod
-    def dist(p0, p1):
-        x0, y0 = p0
-        x1, y1 = p1
-        return ((x0-x1)**2 + (y0-y1)**2)**.5
+    def __init__(self, x, y, width, height, index):
+        
+        self.dimensions = (x, y, width, height)
+        self.rect = pygame.Rect(*self.dimensions)
+        
+        self.start_color = cfg.track["start_line_color"]
+        self.finish_color = cfg.track["finish_line_color"]
+        self.default_color = cfg.track["default_color"]
+        self.color = self.default_color
+        self.border_color = cfg.track["border_color"]
+        
+        self.active = True
+        self.start_finish = None
+        self.index = index
+        self.mutable = True
 
-    @staticmethod
-    def rotate(coord, angle, center):
-        angle = -radians(angle+90)
-        x0, y0 = center        
-        d = Utils.dist(center, coord)
-        return (d*cos(angle) + x0, d*sin(angle) + y0)
+    def check_state(self):
+        mouse_pos = pygame.mouse.get_pos()
+        pressed_state = pygame.mouse.get_pressed()
+        keys = pygame.key.get_pressed()
+        x, y, w, h = self.dimensions
+        if x+w > mouse_pos[0] > x and y + h > mouse_pos[1] > y and self.mutable:
+            if pressed_state[0]: 
+                self.active = False
+                self.start_finish = None                
+            elif pressed_state[2]:
+                self.active = True
+                self.start_finish = None
+            elif keys[pygame.K_s]:
+                self.start_finish = "start"
+            elif keys[pygame.K_f]:
+                self.start_finish = "finish"
+        if self.start_finish == "start":
+            self.color = self.start_color
+        elif self.start_finish == "finish":
+            self.color = self.finish_color
+        else: self.color = self.default_color
+    
+    def render(self, screen):
+        self.check_state()
+        if self.active:        
+            pygame.draw.rect(screen, self.color, self.rect)    
+            pygame.draw.rect(screen, self.border_color, self.rect, 1)
 
-    @staticmethod
-    def rotate_image(image, topleft, angle):
-        rotated_image = pygame.transform.rotate(image, angle)
-        new_rect = rotated_image.get_rect(center = image.get_rect(
-            topleft = topleft).center)
-        return rotated_image, new_rect
 
 class Car:
     """Class representing a car that can be added to the track environment
@@ -465,82 +522,26 @@ class Car:
             pygame.draw.circle(screen, self.sensor_color, (sensor[0], sensor[1]), 5)
 
     
-class TrackBorder: 
-    """Class representing a single block on the simulation
-
-    A TrackBorder can have 4 main states: Active, inactive, start and finish. An
-    active TrackBorder respresents a wall. Start and finish TrackBorders
-    represent starting and finishing lines respectively. Inactive TrackBorders
-    are not rendered and do not exist from the perspective of the car
-
-    Attributes:
-        dimenstions:    ((int, int, int, int))
-            The x, y, width and height of the TrackBorder in pixels    
-        rect:  (pygame.rect)
-            Pygame rect representing this class
-        start_color:    (int, int , int)
-            Color of starting line TrackBorders
-        finish_color:   (int, int, int)
-            Color of finish line TrackBorders
-        default_color:  (int, int, int)
-            Color of regular active TrackBorders        
-        border_color:   (int, int, int)
-            Color of the outline on a TrackBorders        
-        active: (bool)
-            Represents whether or not the TrackBorder should be used
-            rendering/collisions
-        start_finish:   (string | None)
-            Denotes whether the track is used in a starting line ("start"),
-            finish line ("finish") or neither (None)
-        index:          ([int, int])
-            A list containing the row, col position of this TrackBorder in an
-            array of TrackBorders
-
-        mutable:        (bool)
-            False to lock a TrackBorder from changes (like mouse clicks, for example)
-    """
+class Utils:
+    """Collection of commonly used utility methods."""
     
-    def __init__(self, x, y, width, height, index):
-        
-        self.dimensions = (x, y, width, height)
-        self.rect = pygame.Rect(*self.dimensions)
-        
-        self.start_color = cfg.track["start_line_color"]
-        self.finish_color = cfg.track["finish_line_color"]
-        self.default_color = cfg.track["default_color"]
-        self.color = self.default_color
-        self.border_color = (255,255,255)
-        
-        self.active = True
-        self.start_finish = None
-        self.index = index
-        self.mutable = True
+    @staticmethod
+    def dist(p0, p1):
+        x0, y0 = p0
+        x1, y1 = p1
+        return ((x0-x1)**2 + (y0-y1)**2)**.5
 
-    def check_state(self):
-        mouse_pos = pygame.mouse.get_pos()
-        pressed_state = pygame.mouse.get_pressed()
-        keys = pygame.key.get_pressed()
-        x, y, w, h = self.dimensions
-        if x+w > mouse_pos[0] > x and y + h > mouse_pos[1] > y and self.mutable:
-            if pressed_state[0]: 
-                self.active = False
-                self.start_finish = None                
-            elif pressed_state[2]:
-                self.active = True
-                self.start_finish = None
-            elif keys[pygame.K_s]:
-                self.start_finish = "start"
-            elif keys[pygame.K_f]:
-                self.start_finish = "finish"
-        if self.start_finish == "start":
-            self.color = self.start_color
-        elif self.start_finish == "finish":
-            self.color = self.finish_color
-        else: self.color = self.default_color
-    
-    def render(self, screen):
-        self.check_state()
-        if self.active:        
-            pygame.draw.rect(screen, self.color, self.rect)    
-            pygame.draw.rect(screen, self.border_color, self.rect, 1)
+    @staticmethod
+    def rotate(coord, angle, center):
+        angle = -radians(angle+90)
+        x0, y0 = center        
+        d = Utils.dist(center, coord)
+        return (d*cos(angle) + x0, d*sin(angle) + y0)
+
+    @staticmethod
+    def rotate_image(image, topleft, angle):
+        rotated_image = pygame.transform.rotate(image, angle)
+        new_rect = rotated_image.get_rect(center = image.get_rect(
+            topleft = topleft).center)
+        return rotated_image, new_rect
 

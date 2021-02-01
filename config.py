@@ -41,7 +41,8 @@ track = {
     "num_blocks_y": 10, 
     "start_line_color": (0, 128, 0),    # Staring/finish/normal block colors
     "finish_line_color": (255, 0, 0),
-    "default_color": (87, 46, 140)
+    "default_color": (87, 46, 140),
+    "border_color": (255, 255, 255) # Color outlining each blocks
     }
 
 # Mapping of actions to numerical action state values 
