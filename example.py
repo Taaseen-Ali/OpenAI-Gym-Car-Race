@@ -1,7 +1,9 @@
 import os
+
 from SelfDriveEnv import Car, Track
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import PPO
+
 import config as cfg
 
 
@@ -20,7 +22,12 @@ car = Car(cfg.car['position'][0], cfg.car['position'][1],
           cfg.car['num_sensors'])
 env.add_car(car)
 
-# Uncomment one of the followind depending on what you'd like to do
+# Uncomment this if you've made any changes to the environment and want to make
+# sure that everything is still okay (no output means everything is fine):
+
+# check_env(env)
+
+# Uncomment one of the following depending on what you'd like to do
 
 # A. Use an existing model
 model = PPO.load(model_dir + model_name)
@@ -44,6 +51,8 @@ car = Car(cfg.car['position'][0], cfg.car['position'][1],
 env.add_car(car)
 
 obs = env.reset(new=False) # You can omit new=True if you'd like to use a saved track
+
+# Run the simulation until the car crashes or finishes
 
 done = False
 while not done:

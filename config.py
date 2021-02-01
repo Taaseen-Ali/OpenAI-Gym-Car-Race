@@ -17,7 +17,8 @@ car = {
     "width": 50,                # Box width/height of the car
     "height": 50,               
     "angle": 90,                # Initial direction of the car
-    "num_sensors": 10,          # Number of sensor percepts (red dots)
+    "num_sensors": 11,          # Number of sensor percepts (dots radiating out from the car)
+    "sensor_color": (255, 255, 0),
     "speed": 0,                 # Starting speed/angular velocity (these will be
     "rotation": 0,              # removed soon)
     "image": "Audi.png",        # Path to image file for rendering the car
