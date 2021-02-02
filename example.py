@@ -30,12 +30,12 @@ env.add_car(car)
 # Uncomment one of the following depending on what you'd like to do
 
 # A. Use an existing model
-model = PPO.load(model_dir + model_name)
+# model = PPO.load(model_dir + model_name)
 
 # B. Create and train a new model
-""" model = PPO('MlpPolicy', env, verbose=1)
+model = PPO('MlpPolicy', env, verbose=1)
 model.learn(total_timesteps=10000) 
-model.save(model_dir + model_name) """
+model.save(model_dir + model_name)
 
 # C. Load an existing model and keep training with it
 # model = PPO.load(model_dir + model_name)
