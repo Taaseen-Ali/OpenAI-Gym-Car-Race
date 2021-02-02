@@ -1,36 +1,61 @@
+import os
 
 from SelfDriveEnv import Car, Track
+from stable_baselines3.common.env_checker import check_env
+from stable_baselines3 import PPO
+
 import config as cfg
 
+
+# Set the directory where your models should be stored as well as the name of
+# the model that you want to load/save
+
+model_dir = "./models/"
+model_name = "model1"
+os.makedirs(model_dir, exist_ok=True)
+
+# Set up the environment using the values found in configs
+
 env = Track(cfg.track['num_blocks_x'], cfg.track['num_blocks_y'], 
             cfg.track['block_width'], cfg.track['block_height'])
 car = Car(cfg.car['position'][0], cfg.car['position'][1], 
           cfg.car['num_sensors'])
 env.add_car(car)
-env.reset(True)
 
+# Uncomment this if you've made any changes to the environment and want to make
+# sure that everything is still okay (no output means everything is fine):
+
+# check_env(env)
+
+# Uncomment one of the following depending on what you'd like to do
+
+# A. Use an existing model
+# model = PPO.load(model_dir + model_name)
+
+# B. Create and train a new model
 model = PPO('MlpPolicy', env, verbose=1)
-# model.learn(total_timesteps=40000)
+model.learn(total_timesteps=10000) 
+model.save(model_dir + model_name)
 
+# C. Load an existing model and keep training with it
+# model = PPO.load(model_dir + model_name)
+# model.learn(total_timesteps=10000) 
+# model.save(model_dir + model_name)
+
+# Reset the env
 
 env = Track(cfg.track['num_blocks_x'], cfg.track['num_blocks_y'], 
             cfg.track['block_width'], cfg.track['block_height'])
 car = Car(cfg.car['position'][0], cfg.car['position'][1], 
           cfg.car['num_sensors'])
 env.add_car(car)
-obs = env.reset()
+
+obs = env.reset(new=False) # You can set new=True if you'd like to create a new track
+
+# Run the simulation until the car crashes or finishes
+
 done = False
-total_reward = 0
-
-print("Running simulation...")
-
 while not done:
-    action = env.action_space.sample()
-    obs, reward, done, _ = env.step(action)
-    total_reward += reward    
-    # This is optional
+    action, _states = model.predict(obs) 
+    obs, rewards, done, info = env.step(action)
     env.render()
-
-print("Car finished with a reward of", total_reward) 
-
-""
