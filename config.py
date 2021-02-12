@@ -35,10 +35,10 @@ car = {
 # Default track settings
 
 track = {
-    "block_width": 50,          # Width and height of each individual block
-    "block_height": 50,
-    "num_blocks_x": 10,         # Number of blocks in the x/y direction
-    "num_blocks_y": 10, 
+    "block_width": 25,          # Width and height of each individual block
+    "block_height": 25,
+    "num_blocks_x": 20,         # Number of blocks in the x/y direction
+    "num_blocks_y": 20, 
     "start_line_color": (0, 128, 0),    # Staring/finish/normal block colors
     "finish_line_color": (255, 0, 0),
     "default_color": (87, 46, 140),
@@ -60,8 +60,8 @@ action = {
 # Reward values
                                 
 reward = {
-    "new_tile_reward" : 100,    # Reward for reaching a new tile
-    "same_tile_reward" : -1,    # Penalty for not moving to a new tile
-    "crash_reward" : -10000     # Penalty for crashing
+    "new_tile_reward" : 10,    # Reward for reaching a new tile
+    "same_tile_reward" : -.1,    # Penalty for not moving to a new tile
+    "crash_reward" : -10    # Penalty for crashing
     }
 

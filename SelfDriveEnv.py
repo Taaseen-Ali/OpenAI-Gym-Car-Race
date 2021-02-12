@@ -56,9 +56,9 @@ class Track(gym.Env):
         pygame.init()
         
         self.action_space = spaces.MultiDiscrete([3,3])
-        self.observation_space = spaces.Box(np.zeros((cfg.car["num_sensors"])), \
-            np.full((cfg.car["num_sensors"]), inf))
-        
+        """ self.action_space = DiscreteActions.get_action_space() """
+        self.observation_space = spaces.Box(np.zeros((cfg.car["num_sensors"] + 2)), \
+            np.full((cfg.car["num_sensors"] + 2), inf))
         self._num_blocks_x, self._num_blocks_y = num_blocks_x, num_blocks_y
         self._initialized = False
         
@@ -163,7 +163,7 @@ class Track(gym.Env):
         return False, None, None
     
     def current_tile(self, car):
-        x, y = car.get_car_tip()
+        x, y = car.get_car_center()
         for row in self.track:
             for border in row:
                 if border.rect.collidepoint(x, y):
@@ -213,8 +213,7 @@ class Track(gym.Env):
         self.finish_locs = self._calc_avg_pos("finish")
         self.cars[0].set_pos(self.start_locs)
         self._initialized = True            
-        
-        return self.cars[0]._update_sensors()
+        return self.cars[0]._get_observation()
     
     def step(self, action):
         """OpenAI gym interface method to advance the simulation by one step
@@ -228,6 +227,11 @@ class Track(gym.Env):
         """
         
         # TODO: Extend this to support multiple cars
+        """ 
+        if isinstance(action, np.ndarray):
+            action = action[0]
+        car = self.cars[0] """
+        """ obs, reward, done, _ = car.step(DiscreteActions.get_controls_from_action(action)) """
         car = self.cars[0]
         obs, reward, done, _ = car.step(action)
         return obs, reward, done, _
@@ -336,8 +340,15 @@ class Car:
             Array of n sensors. Each sensor is a list of 4 numbers 
             representing the x positions representing the x coord, y coord, 
             angle from car tip, anddistance from car tip respectively
+        traveled:       ([(int, int)...])
+            List of (x, y) tuples. Each element corresponds to a TrackBorder 
+            that has been reached by the car
         crashed:        (bool)
             True if the car has crashed, false otherwise
+        has_finished:   (bool)
+            True if car has finished the race, false otherwise
+        done:           (bool)
+            True if either the car has finished or crashed, false otherwise
         reward_history: ([int...])
             List of reward acheived per time step
     """
@@ -446,8 +457,12 @@ class Car:
                 sensor[0] += 1*cos(-radians(self.angle + sensor[2]))
                 sensor[1] += 1*sin(-radians(self.angle + sensor[2]))
             sensor[3] = Utils.dist(self.get_car_tip(), (sensor[0], sensor[1]))
-        return np.array([sensor[3] for sensor in self.sensors])
+        return [sensor[3] for sensor in self.sensors]
     
+    def _get_observation(self):
+        return np.array(self._update_sensors() + [self.speed, radians(self.angle)])
+        """ return np.array(self._update_sensors())     """
+
     def _move_forward(self, dist):
         offset = 90
         x, y = self.pos
@@ -499,7 +514,7 @@ class Car:
 
         if accel == self.ACCELERATE and self.speed < self.max_speed:
             self.speed += self.acceleration
-        elif accel == self.DECELERATE and self.speed > 0:
+        elif accel == self.DECELERATE and self.speed > self.acceleration:
             self.speed -= self.acceleration
         if rot == self.ACCEL_LEFT and self.rotation < self.max_turn_rate:            
             self.rotation += self.turn_rate
@@ -507,13 +522,17 @@ class Car:
             self.rotation -= self.turn_rate
         
         reward = self.move()
-        observations = self._update_sensors()
+        observations = self._get_observation()
         return observations, reward, self.done, {}
 
     def reset(self):
         self.pos = cfg.car['position']
         self.angle = cfg.car['angle']
         self._center_sensors()
+        self.crashed = False 
+        self.has_finished = False
+        self.done = False
+        self.reward_history = []
 
     def render(self, screen):
         rotated_image, new_rect = Utils.rotate_image(self.image, self.pos, self.angle)
@@ -545,3 +564,27 @@ class Utils:
             topleft = topleft).center)
         return rotated_image, new_rect
 
+""" class DiscreteActions:
+    rest = cfg.action["rest"]
+    decelerate = cfg.action["decelerate"]
+    accelerate = cfg.action["accelerate"]
+    accel_left = cfg.action["accel_left"]
+    accel_right = cfg.action["accel_right"]
+    
+    ACTION_MAP = [
+        ("REST", [rest, rest]),
+        ("FORWARD_STRAIGHT", [accelerate, rest]),
+        ("FORWARD_LEFT", [accelerate, accel_left]),
+        ("FORWARD_RIGHT", [accelerate, accel_right]),
+        ("BACKWARD_STRAIGHT", [decelerate, rest]),
+        ("BACKWARD_LEFT", [decelerate, accel_left]),
+        ("BACKWARD_RIGHT", [decelerate, accel_right]),
+    ]
+
+    @staticmethod
+    def get_action_space():
+        return spaces.Discrete(len(DiscreteActions.ACTION_MAP))
+
+    @staticmethod
+    def get_controls_from_action(action):
+        return DiscreteActions.ACTION_MAP[action][1] """
