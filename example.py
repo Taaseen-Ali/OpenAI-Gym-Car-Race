@@ -26,21 +26,43 @@ env.add_car(car)
 
 # check_env(env)
 
-# Uncomment one of the following depending on what you'd like to do
+model = None
+# Function to use an existing model
+def existing_model():
+    global model
+    model = PPO.load(model_dir + model_name)
 
-# A. Use an existing model
-# model = PPO.load(model_dir + model_name)
+# Function to create and train a new model
+def new_model():
+    global model
+    timesteps = 10000
+    model = PPO('MlpPolicy', env, tensorboard_log="./ppo/", verbose=1)
+    model.learn(total_timesteps=timesteps, callback=TensorboardCallback()) 
+    model.save(model_dir + model_name)
 
-# B. Create and train a new model
-timesteps = 10000
-model = PPO('MlpPolicy', env, tensorboard_log="./ppo/", verbose=1)
-model.learn(total_timesteps=timesteps, callback=TensorboardCallback()) 
-model.save(model_dir + model_name)
+# # Function to load an existing model and keep training with it
+# def train_existing():
+#     global model
+#     model = PPO.load(model_dir + model_name)
+#     model.learn(total_timesteps=10000) 
+#     model.save(model_dir + model_name)
 
-# C. Load an existing model and keep training with it
-# model = PPO.load(model_dir + model_name)
-# model.learn(total_timesteps=10000) 
-# model.save(model_dir + model_name)
+# switch-case function
+def mode(letter):
+    switch = {
+        "A": existing_model,
+        "B": new_model
+        # "C": train_existing
+    }
+    if letter not in switch:
+        raise ValueError("mode() needs a letter A, B")
+    switch[letter]()
+
+# choose from the following
+# type 'A' for Use an existing model
+# type 'B' to create and train a new model
+# type 'C' to load an existing model and keep training with it
+mode('B')
 
 # Reset the env
 
