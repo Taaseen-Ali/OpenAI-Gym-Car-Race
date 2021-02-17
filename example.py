@@ -37,11 +37,6 @@ model = PPO('MlpPolicy', env, tensorboard_log="./ppo/", verbose=1)
 model.learn(total_timesteps=timesteps, callback=TensorboardCallback()) 
 model.save(model_dir + model_name)
 
-# C. Load an existing model and keep training with it
-# model = PPO.load(model_dir + model_name)
-# model.learn(total_timesteps=10000) 
-# model.save(model_dir + model_name)
-
 # Reset the env
 
 env = Track()
