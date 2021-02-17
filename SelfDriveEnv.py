@@ -8,7 +8,7 @@ import numpy as np
 import gym
 from gym import spaces
 
-import config as cfg
+from config import cfg
 
 
 class Track(gym.Env): 
@@ -39,7 +39,7 @@ class Track(gym.Env):
             List of finish line TrackBorders
     """
 
-    def __init__(self, num_blocks_x, num_blocks_y, block_width, block_height):
+    def __init__(self, config=cfg):
         """
         Parameters:
             num_blocks_x: (int)
@@ -57,19 +57,22 @@ class Track(gym.Env):
         
         self.action_space = spaces.MultiDiscrete([3,3])
         """ self.action_space = DiscreteActions.get_action_space() """
-        self.observation_space = spaces.Box(np.zeros((cfg.car["num_sensors"] + 2)), \
-            np.full((cfg.car["num_sensors"] + 2), inf))
-        self._num_blocks_x, self._num_blocks_y = num_blocks_x, num_blocks_y
+        self.observation_space = spaces.Box(np.zeros((config["car"]["num_sensors"] + 2)), \
+            np.full((config["car"]["num_sensors"] + 2), inf))        
+        
+        self._num_blocks_x, self._num_blocks_y = config["track"]['num_blocks_x'], config["track"]['num_blocks_y']
+        self._block_width, self._block_height = config["track"]['block_width'], config["track"]['block_height']
+        
         self._initialized = False
         
         self._clock = pygame.time.Clock()
-        self._screen_width, self._screen_height = block_width * num_blocks_x, \
-            block_height * num_blocks_y
+        self._screen_width, self._screen_height = self._block_width * self._num_blocks_x, \
+            self._block_height * self._num_blocks_y
         self._screen = None
         
-        self.track = [[TrackBorder(x*block_width, y*block_height, block_width,
-            block_height, (x,y)) for x in range(-1,num_blocks_x+1)
-            ] for y in range(-1, num_blocks_y+1)]
+        self.track = [[TrackBorder(x*self._block_width, y*self._block_height, self._block_width,
+            self._block_height, (x,y)) for x in range(-1,self._num_blocks_x+1)
+            ] for y in range(-1, self._num_blocks_y+1)]
         self.cars = []
         self.start_locs = []    #start coordinates
         self.finish_locs = []   #finish coordinates
@@ -277,11 +280,11 @@ class TrackBorder:
         self.dimensions = (x, y, width, height)
         self.rect = pygame.Rect(*self.dimensions)
         
-        self.start_color = cfg.track["start_line_color"]
-        self.finish_color = cfg.track["finish_line_color"]
-        self.default_color = cfg.track["default_color"]
+        self.start_color = cfg["track"]["start_line_color"]
+        self.finish_color = cfg["track"]["finish_line_color"]
+        self.default_color = cfg["track"]["default_color"]
         self.color = self.default_color
-        self.border_color = cfg.track["border_color"]
+        self.border_color = cfg["track"]["border_color"]
         
         self.active = True
         self.start_finish = None
@@ -353,7 +356,7 @@ class Car:
             List of reward acheived per time step
     """
 
-    def __init__(self, x, y, num_sensors, reward_func=None):
+    def __init__(self, config=cfg):
         """
         Parameters:
             x: (int)
@@ -362,54 +365,56 @@ class Car:
                 Initial topleft vertical pixel position of the car
             num_sensors: (int)
         """
+        self.config = config
         self.track = None
-        self.image = pygame.image.load(cfg.car['image'])
-        self.sensor_color = cfg.car["sensor_color"]
-        self.width = cfg.car['width']
-        self.height = cfg.car['height']
+        self.image = pygame.image.load(config["car"]['image'])
+        self.sensor_color = config["car"]["sensor_color"]
+        self.width = config["car"]['width']
+        self.height = config["car"]['height']
         self.image = pygame.transform.scale(self.image, (self.width, self.height))        
-        self.angle = cfg.car['angle']
-        self.pos = [x, y]        
+        self.angle = config["car"]['angle']
+        self.pos = config["car"]["position"]
         
         self.crashed = False 
         self.has_finished = False
         self.done = False
         
-        self.sensors = [[0, 0,  i*(180.0/num_sensors), 0] for i in 
-            range(num_sensors)]
+        self.num_sensors = config["car"]["num_sensors"]
+        self.sensors = [[0, 0,  i*(180.0/self.num_sensors), 0] for i in 
+            range(self.num_sensors)]
         self._center_sensors()
-        self.speed = cfg.car['speed']
-        self.rotation = cfg.car['rotation']
+        self.speed = config["car"]['speed']
+        self.rotation = config["car"]['rotation']
 
-        self.acceleration = cfg.car['acceleration']
-        self.max_speed = cfg.car['max_speed']
+        self.acceleration = config["car"]['acceleration']
+        self.max_speed = config["car"]['max_speed']
 
-        self.turn_rate = cfg.car['turn_rate']
-        self.max_turn_rate = cfg.car['max_turn_rate']
+        self.turn_rate = config["car"]['turn_rate']
+        self.max_turn_rate = config["car"]['max_turn_rate']
         
-        self.REST = cfg.action['rest']
-        self.DECELERATE = cfg.action['decelerate']
-        self.ACCELERATE = cfg.action['accelerate']
-        self.ACCEL_LEFT = cfg.action['accel_left']
-        self.ACCEL_RIGHT = cfg.action['accel_right']
+        self.REST = config["action"]['rest']
+        self.DECELERATE = config["action"]['decelerate']
+        self.ACCELERATE = config["action"]['accelerate']
+        self.ACCEL_LEFT = config["action"]['accel_left']
+        self.ACCEL_RIGHT = config["action"]['accel_right']
     
-        self.NEW_TILE_REWARD = cfg.reward['new_tile_reward']
-        self.SAME_TILE_REWARD = cfg.reward['same_tile_reward']
-        self.CRASH_REWARD = cfg.reward['crash_reward']
+        self.NEW_TILE_REWARD = config["reward"]['new_tile_reward']
+        self.SAME_TILE_REWARD = config["reward"]['same_tile_reward']
+        self.CRASH_REWARD = config["reward"]['crash_reward']
         self.traveled = []
-        self._calc_reward = reward_func(self) if reward_func else self._default_step_reward
+        self._calc_reward = config["reward"]["function"](self) if config["reward"]["function"] else self._default_step_reward
         self.reward_history = []
-    
+
     @staticmethod
     def reward_function(f):
         """Decorator for creating custom reward functions
 
-        This decorator simply allows the Car class to pass in an instance of
+        This wrapper simply allows the Car class to pass in an instance of
         itself into the reward function without calling it. Doing so allows us
         to dynamically set the reward function and call it without passing in a
         reference of this car with each call. The function being wrapped must
         take only one parameter, a reference to an iniitalized car, and return
-        an integer reward. Rewards for the last run are saved within and
+        an integer reward. Rewards for the last run are saved within an
         instance of the bound class
         """
         
@@ -526,8 +531,8 @@ class Car:
         return observations, reward, self.done, {}
 
     def reset(self):
-        self.pos = cfg.car['position']
-        self.angle = cfg.car['angle']
+        self.pos = self.config["car"]['position']
+        self.angle = self.config["car"]['angle']
         self._center_sensors()
         self.crashed = False 
         self.has_finished = False
@@ -563,28 +568,3 @@ class Utils:
         new_rect = rotated_image.get_rect(center = image.get_rect(
             topleft = topleft).center)
         return rotated_image, new_rect
-
-""" class DiscreteActions:
-    rest = cfg.action["rest"]
-    decelerate = cfg.action["decelerate"]
-    accelerate = cfg.action["accelerate"]
-    accel_left = cfg.action["accel_left"]
-    accel_right = cfg.action["accel_right"]
-    
-    ACTION_MAP = [
-        ("REST", [rest, rest]),
-        ("FORWARD_STRAIGHT", [accelerate, rest]),
-        ("FORWARD_LEFT", [accelerate, accel_left]),
-        ("FORWARD_RIGHT", [accelerate, accel_right]),
-        ("BACKWARD_STRAIGHT", [decelerate, rest]),
-        ("BACKWARD_LEFT", [decelerate, accel_left]),
-        ("BACKWARD_RIGHT", [decelerate, accel_right]),
-    ]
-
-    @staticmethod
-    def get_action_space():
-        return spaces.Discrete(len(DiscreteActions.ACTION_MAP))
-
-    @staticmethod
-    def get_controls_from_action(action):
-        return DiscreteActions.ACTION_MAP[action][1] """
