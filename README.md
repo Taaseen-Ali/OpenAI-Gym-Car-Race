@@ -2,6 +2,8 @@
 
 An OpenAI Gym environment for simulating a self driving car on a race track. Built for [NYU SelfDrive](https://engineering.nyu.edu/research/vertically-integrated-projects/vip-teams/nyu-self-drive).
 
+This project is still under active development. [Bug reports](https://github.com/Taaseen-Ali/OpenAI-Gym-Car-Race/issues) are welcome.
+
 ## Prerequisites
 
 Ensure that you are using python3 and that all required python modules are installed by running the following:
@@ -12,11 +14,9 @@ Ensure that you are using python3 and that all required python modules are insta
 
 Run `python example.py` to execute the example project. Doing so will open a window inside which you can click on the purple blocks to create a track for the car to navigate through. After doing so, press the escape key to begin running the simulation. If you choose to run the simulation without rendering the car, you can omit `env.render()` from the main loop in your project.
 
-This project is still under active development. [Bug reports](https://github.com/Taaseen-Ali/OpenAI-Gym-Car-Race/issues) are welcome.
-
 ## Configuring
 
-Much of the general configuration can be done through editing the values in [config.py](./config.py). A custom reward function can also be set by passing it as a parameter into an instance of `Car` like so:
+Much of the general configuration can be done through editing the values in [config.py](./config.py). A custom reward function can also be passed into the environment by defining it like the following example and adding a reference to it using the `reward.function` field in the config file:
 
 ```python
 @Car.reward_function
@@ -27,10 +27,9 @@ def my_reward_func(car):
 
     return reward
 
-# Pass in the custom reward function into Car
+# Make sure to add my_reward_func to config.py
 
-car = Car(cfg.car['position'][0], cfg.car['position'][1],
-          cfg.car['num_sensors'], reward_func=my_reward_func)
+car = Car()
 env.add_car(car)
 ```
 

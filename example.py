@@ -1,10 +1,11 @@
 import os
 
-from SelfDriveEnv import Car, Track
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import PPO
 
-import config as cfg
+from SelfDriveEnv import Car, Track
+from training_utils import TensorboardCallback, linear_schedule
+from config import cfg
 
 
 # Set the directory where your models should be stored as well as the name of
@@ -16,10 +17,8 @@ os.makedirs(model_dir, exist_ok=True)
 
 # Set up the environment using the values found in configs
 
-env = Track(cfg.track['num_blocks_x'], cfg.track['num_blocks_y'], 
-            cfg.track['block_width'], cfg.track['block_height'])
-car = Car(cfg.car['position'][0], cfg.car['position'][1], 
-          cfg.car['num_sensors'])
+env = Track()
+car = Car()
 env.add_car(car)
 
 # Uncomment this if you've made any changes to the environment and want to make
@@ -33,21 +32,15 @@ env.add_car(car)
 # model = PPO.load(model_dir + model_name)
 
 # B. Create and train a new model
-model = PPO('MlpPolicy', env, verbose=1)
-model.learn(total_timesteps=10000) 
+timesteps = 10000
+model = PPO('MlpPolicy', env, tensorboard_log="./ppo/", verbose=1)
+model.learn(total_timesteps=timesteps, callback=TensorboardCallback()) 
 model.save(model_dir + model_name)
-
-# C. Load an existing model and keep training with it
-# model = PPO.load(model_dir + model_name)
-# model.learn(total_timesteps=10000) 
-# model.save(model_dir + model_name)
 
 # Reset the env
 
-env = Track(cfg.track['num_blocks_x'], cfg.track['num_blocks_y'], 
-            cfg.track['block_width'], cfg.track['block_height'])
-car = Car(cfg.car['position'][0], cfg.car['position'][1], 
-          cfg.car['num_sensors'])
+env = Track()
+car = Car()
 env.add_car(car)
 
 obs = env.reset(new=False) # You can set new=True if you'd like to create a new track

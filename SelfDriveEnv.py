@@ -8,7 +8,7 @@ import numpy as np
 import gym
 from gym import spaces
 
-import config as cfg
+from config import cfg
 
 
 class Track(gym.Env): 
@@ -39,7 +39,7 @@ class Track(gym.Env):
             List of finish line TrackBorders
     """
 
-    def __init__(self, num_blocks_x, num_blocks_y, block_width, block_height):
+    def __init__(self, config=cfg):
         """
         Parameters:
             num_blocks_x: (int)
@@ -56,20 +56,23 @@ class Track(gym.Env):
         pygame.init()
         
         self.action_space = spaces.MultiDiscrete([3,3])
-        self.observation_space = spaces.Box(np.zeros((cfg.car["num_sensors"])), \
-            np.full((cfg.car["num_sensors"]), inf))
+        """ self.action_space = DiscreteActions.get_action_space() """
+        self.observation_space = spaces.Box(np.zeros((config["car"]["num_sensors"] + 2)), \
+            np.full((config["car"]["num_sensors"] + 2), inf))        
         
-        self._num_blocks_x, self._num_blocks_y = num_blocks_x, num_blocks_y
+        self._num_blocks_x, self._num_blocks_y = config["track"]['num_blocks_x'], config["track"]['num_blocks_y']
+        self._block_width, self._block_height = config["track"]['block_width'], config["track"]['block_height']
+        
         self._initialized = False
         
         self._clock = pygame.time.Clock()
-        self._screen_width, self._screen_height = block_width * num_blocks_x, \
-            block_height * num_blocks_y
+        self._screen_width, self._screen_height = self._block_width * self._num_blocks_x, \
+            self._block_height * self._num_blocks_y
         self._screen = None
         
-        self.track = [[TrackBorder(x*block_width, y*block_height, block_width,
-            block_height, (x,y)) for x in range(-1,num_blocks_x+1)
-            ] for y in range(-1, num_blocks_y+1)]
+        self.track = [[TrackBorder(x*self._block_width, y*self._block_height, self._block_width,
+            self._block_height, (x,y)) for x in range(-1,self._num_blocks_x+1)
+            ] for y in range(-1, self._num_blocks_y+1)]
         self.cars = []
         self.start_locs = []    #start coordinates
         self.finish_locs = []   #finish coordinates
@@ -163,7 +166,7 @@ class Track(gym.Env):
         return False, None, None
     
     def current_tile(self, car):
-        x, y = car.get_car_tip()
+        x, y = car.get_car_center()
         for row in self.track:
             for border in row:
                 if border.rect.collidepoint(x, y):
@@ -213,8 +216,7 @@ class Track(gym.Env):
         self.finish_locs = self._calc_avg_pos("finish")
         self.cars[0].set_pos(self.start_locs)
         self._initialized = True            
-        
-        return self.cars[0]._update_sensors()
+        return self.cars[0]._get_observation()
     
     def step(self, action):
         """OpenAI gym interface method to advance the simulation by one step
@@ -228,6 +230,11 @@ class Track(gym.Env):
         """
         
         # TODO: Extend this to support multiple cars
+        """ 
+        if isinstance(action, np.ndarray):
+            action = action[0]
+        car = self.cars[0] """
+        """ obs, reward, done, _ = car.step(DiscreteActions.get_controls_from_action(action)) """
         car = self.cars[0]
         obs, reward, done, _ = car.step(action)
         return obs, reward, done, _
@@ -273,11 +280,11 @@ class TrackBorder:
         self.dimensions = (x, y, width, height)
         self.rect = pygame.Rect(*self.dimensions)
         
-        self.start_color = cfg.track["start_line_color"]
-        self.finish_color = cfg.track["finish_line_color"]
-        self.default_color = cfg.track["default_color"]
+        self.start_color = cfg["track"]["start_line_color"]
+        self.finish_color = cfg["track"]["finish_line_color"]
+        self.default_color = cfg["track"]["default_color"]
         self.color = self.default_color
-        self.border_color = cfg.track["border_color"]
+        self.border_color = cfg["track"]["border_color"]
         
         self.active = True
         self.start_finish = None
@@ -336,13 +343,20 @@ class Car:
             Array of n sensors. Each sensor is a list of 4 numbers 
             representing the x positions representing the x coord, y coord, 
             angle from car tip, anddistance from car tip respectively
+        traveled:       ([(int, int)...])
+            List of (x, y) tuples. Each element corresponds to a TrackBorder 
+            that has been reached by the car
         crashed:        (bool)
             True if the car has crashed, false otherwise
+        has_finished:   (bool)
+            True if car has finished the race, false otherwise
+        done:           (bool)
+            True if either the car has finished or crashed, false otherwise
         reward_history: ([int...])
             List of reward acheived per time step
     """
 
-    def __init__(self, x, y, num_sensors, reward_func=None):
+    def __init__(self, config=cfg):
         """
         Parameters:
             x: (int)
@@ -351,54 +365,56 @@ class Car:
                 Initial topleft vertical pixel position of the car
             num_sensors: (int)
         """
+        self.config = config
         self.track = None
-        self.image = pygame.image.load(cfg.car['image'])
-        self.sensor_color = cfg.car["sensor_color"]
-        self.width = cfg.car['width']
-        self.height = cfg.car['height']
+        self.image = pygame.image.load(config["car"]['image'])
+        self.sensor_color = config["car"]["sensor_color"]
+        self.width = config["car"]['width']
+        self.height = config["car"]['height']
         self.image = pygame.transform.scale(self.image, (self.width, self.height))        
-        self.angle = cfg.car['angle']
-        self.pos = [x, y]        
+        self.angle = config["car"]['angle']
+        self.pos = config["car"]["position"]
         
         self.crashed = False 
         self.has_finished = False
         self.done = False
         
-        self.sensors = [[0, 0,  i*(180.0/num_sensors), 0] for i in 
-            range(num_sensors)]
+        self.num_sensors = config["car"]["num_sensors"]
+        self.sensors = [[0, 0,  i*(180.0/self.num_sensors), 0] for i in 
+            range(self.num_sensors)]
         self._center_sensors()
-        self.speed = cfg.car['speed']
-        self.rotation = cfg.car['rotation']
+        self.speed = config["car"]['speed']
+        self.rotation = config["car"]['rotation']
 
-        self.acceleration = cfg.car['acceleration']
-        self.max_speed = cfg.car['max_speed']
+        self.acceleration = config["car"]['acceleration']
+        self.max_speed = config["car"]['max_speed']
 
-        self.turn_rate = cfg.car['turn_rate']
-        self.max_turn_rate = cfg.car['max_turn_rate']
+        self.turn_rate = config["car"]['turn_rate']
+        self.max_turn_rate = config["car"]['max_turn_rate']
         
-        self.REST = cfg.action['rest']
-        self.DECELERATE = cfg.action['decelerate']
-        self.ACCELERATE = cfg.action['accelerate']
-        self.ACCEL_LEFT = cfg.action['accel_left']
-        self.ACCEL_RIGHT = cfg.action['accel_right']
+        self.REST = config["action"]['rest']
+        self.DECELERATE = config["action"]['decelerate']
+        self.ACCELERATE = config["action"]['accelerate']
+        self.ACCEL_LEFT = config["action"]['accel_left']
+        self.ACCEL_RIGHT = config["action"]['accel_right']
     
-        self.NEW_TILE_REWARD = cfg.reward['new_tile_reward']
-        self.SAME_TILE_REWARD = cfg.reward['same_tile_reward']
-        self.CRASH_REWARD = cfg.reward['crash_reward']
+        self.NEW_TILE_REWARD = config["reward"]['new_tile_reward']
+        self.SAME_TILE_REWARD = config["reward"]['same_tile_reward']
+        self.CRASH_REWARD = config["reward"]['crash_reward']
         self.traveled = []
-        self._calc_reward = reward_func(self) if reward_func else self._default_step_reward
+        self._calc_reward = config["reward"]["function"](self) if config["reward"]["function"] else self._default_step_reward
         self.reward_history = []
-    
+
     @staticmethod
     def reward_function(f):
         """Decorator for creating custom reward functions
 
-        This decorator simply allows the Car class to pass in an instance of
+        This wrapper simply allows the Car class to pass in an instance of
         itself into the reward function without calling it. Doing so allows us
         to dynamically set the reward function and call it without passing in a
         reference of this car with each call. The function being wrapped must
         take only one parameter, a reference to an iniitalized car, and return
-        an integer reward. Rewards for the last run are saved within and
+        an integer reward. Rewards for the last run are saved within an
         instance of the bound class
         """
         
@@ -446,8 +462,12 @@ class Car:
                 sensor[0] += 1*cos(-radians(self.angle + sensor[2]))
                 sensor[1] += 1*sin(-radians(self.angle + sensor[2]))
             sensor[3] = Utils.dist(self.get_car_tip(), (sensor[0], sensor[1]))
-        return np.array([sensor[3] for sensor in self.sensors])
+        return [sensor[3] for sensor in self.sensors]
     
+    def _get_observation(self):
+        return np.array(self._update_sensors() + [self.speed, radians(self.angle)])
+        """ return np.array(self._update_sensors())     """
+
     def _move_forward(self, dist):
         offset = 90
         x, y = self.pos
@@ -499,7 +519,7 @@ class Car:
 
         if accel == self.ACCELERATE and self.speed < self.max_speed:
             self.speed += self.acceleration
-        elif accel == self.DECELERATE and self.speed > 0:
+        elif accel == self.DECELERATE and self.speed > self.acceleration:
             self.speed -= self.acceleration
         if rot == self.ACCEL_LEFT and self.rotation < self.max_turn_rate:            
             self.rotation += self.turn_rate
@@ -507,13 +527,17 @@ class Car:
             self.rotation -= self.turn_rate
         
         reward = self.move()
-        observations = self._update_sensors()
+        observations = self._get_observation()
         return observations, reward, self.done, {}
 
     def reset(self):
-        self.pos = cfg.car['position']
-        self.angle = cfg.car['angle']
+        self.pos = self.config["car"]['position']
+        self.angle = self.config["car"]['angle']
         self._center_sensors()
+        self.crashed = False 
+        self.has_finished = False
+        self.done = False
+        self.reward_history = []
 
     def render(self, screen):
         rotated_image, new_rect = Utils.rotate_image(self.image, self.pos, self.angle)
@@ -544,4 +568,3 @@ class Utils:
         new_rect = rotated_image.get_rect(center = image.get_rect(
             topleft = topleft).center)
         return rotated_image, new_rect
-
