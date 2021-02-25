@@ -1,4 +1,4 @@
-<img src="./logo.svg"  align="right" width="40%"/>
+<img src="./logo.svg"  align="right" width="30%"/>
 
 # OpenAI Gym Car Race
 

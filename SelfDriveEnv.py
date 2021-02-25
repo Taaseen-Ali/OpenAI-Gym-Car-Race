@@ -2,7 +2,9 @@
 
 import sys
 import pygame
+import cairosvg
 from math import *
+import io
 
 import numpy as np
 import gym
@@ -54,7 +56,10 @@ class Track(gym.Env):
         
         super(Track, self).__init__()
         pygame.init()
-        
+        bites = cairosvg.svg2png(url = "logo.svg")
+        byte_io = io.BytesIO(bites)
+        pygame.display.set_icon(pygame.image.load(byte_io))
+
         self.action_space = spaces.MultiDiscrete([3,3])
         """ self.action_space = DiscreteActions.get_action_space() """
         self.observation_space = spaces.Box(np.zeros((config["car"]["num_sensors"] + 2)), \
