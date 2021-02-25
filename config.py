@@ -42,7 +42,7 @@ cfg = {
         "start_line_color": (0, 128, 0),    # Staring/finish/normal block colors
         "finish_line_color": (255, 0, 0),
         "default_color": (87, 46, 140),
-        "border_color": (255, 255, 255) # Color outlining each blocks
+        "border_color": (255, 255, 255)     # Color outlining each blocks
         },
 
     # Mapping of actions to numerical action state values 
@@ -61,10 +61,10 @@ cfg = {
                                     
     "reward": {
         "new_tile_reward" : 10,     # Reward for reaching a new tile
-        "min_speed": 0.4,           
-        "same_tile_reward" : .1,   
-        "same_tile_penalty": -.3,   # Penalty for not moving to a new tile
-        "crash_reward" : -10,       # Penalty for crashing
+        "min_speed": 0,           
+        "same_tile_reward" : .1,    # Reward for staying alive
+        "same_tile_penalty": -.1,   # Penalty for not moving to a new tile
+        "crash_reward" : -100,       # Penalty for crashing
         "finish_reward": 100,       # Reward for reaching finish line
         
         "function": None,           # Reward function to use. Default 
@@ -75,7 +75,7 @@ cfg = {
     # Training default configs
     
     "training": {
-        "learning_rate": lambda progress: .0007,    # Schedule function for specifying 
+        "learning_rate": lambda progress: .0003,    # Schedule function for specifying 
                                                     # learning rate. Progress is a float 
                                                     # from 0-1 denoting how much of the 
                                                     # training has been completed relative 
