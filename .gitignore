@@ -1,4 +1,5 @@
 __pycache__
+/gym_car_race/track.csv
 /models
 /logs
 /ppo
