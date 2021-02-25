@@ -3,4 +3,3 @@
 pygame
 gym
 stable-baselines3[extra]
-CairoSVG

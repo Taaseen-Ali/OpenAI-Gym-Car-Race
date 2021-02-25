@@ -2,9 +2,7 @@
 
 import sys
 import pygame
-import cairosvg
 from math import *
-import io
 
 import numpy as np
 import gym
@@ -56,9 +54,7 @@ class Track(gym.Env):
         
         super(Track, self).__init__()
         pygame.init()
-        bites = cairosvg.svg2png(url = "gym_car_race/images/logo.svg")
-        byte_io = io.BytesIO(bites)
-        pygame.display.set_icon(pygame.image.load(byte_io))
+        pygame.display.set_icon(pygame.image.load("gym_car_race/images/logo.png"))
 
         self.action_space = spaces.MultiDiscrete([3,3])
         """ self.action_space = DiscreteActions.get_action_space() """
