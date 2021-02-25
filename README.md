@@ -1,4 +1,4 @@
-<img src="./logo.svg"  align="right" width="30%"/>
+<img src="./gym_car_race/images/logo.svg"  align="right" width="30%"/>
 
 # OpenAI Gym Car Race
 
@@ -18,7 +18,7 @@ Run `python example.py` to execute the example project. Doing so will open a win
 
 ## Configuring
 
-Much of the general configuration can be done through editing the values in [config.py](./config.py). A custom reward function can also be passed into the environment by defining it like the following example and adding a reference to it using the `reward.function` field in the config file:
+Much of the general configuration can be done through editing the values in [config.py](./gym_car_race/config.py). A custom reward function can also be passed into the environment by defining it like the following example and adding a reference to it using the `reward.function` field in the config file:
 
 ```python
 @Car.reward_function
@@ -35,4 +35,4 @@ car = Car()
 env.add_car(car)
 ```
 
-If no reward function is provided, a default implementation is used using the corresponding values in [config.py](./config.py).
+If no reward function is provided, a default implementation is used using the corresponding values in [config.py](./gym_car_race/config.py).

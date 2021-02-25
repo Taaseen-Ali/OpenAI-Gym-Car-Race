@@ -1,5 +1,4 @@
 """SelfDrive Environement config
-
 Use this file to help customize various aspects of the simulations. If you find
 additional things in the simulation that you'd like to customize (and think
 others probably would as well) feel free to add it in and open a pull request on
@@ -21,7 +20,7 @@ cfg = {
         "sensor_color": (255, 255, 0),
         "speed": 0,                 # Starting speed/angular velocity (these will be
         "rotation": 0,              # removed soon)
-        "image": "Audi.png",        # Path to image file for rendering the car
+        "image": "gym_car_race/images/cars/Audi.png",    # Path to image file for rendering the car
         
         # Car movement
         
@@ -39,10 +38,11 @@ cfg = {
         "block_height": 25,
         "num_blocks_x": 20,         # Number of blocks in the x/y direction
         "num_blocks_y": 20, 
-        "start_line_color": (0, 128, 0),    # Staring/finish/normal block colors
+        "start_line_color": (0, 128, 0),            # Staring/finish/normal block colors
         "finish_line_color": (255, 0, 0),
         "default_color": (87, 46, 140),
-        "border_color": (255, 255, 255)     # Color outlining each blocks
+        "border_color": (255, 255, 255),            # Color outlining each blocks
+        "track_file": "gym_car_race/track.csv",     # Path to track file
         },
 
     # Mapping of actions to numerical action state values 

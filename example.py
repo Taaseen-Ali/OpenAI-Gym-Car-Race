@@ -3,9 +3,9 @@ import os
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import PPO
 
-from SelfDriveEnv import Car, Track
-from training_utils import TensorboardCallback, linear_schedule
-from config import cfg
+from gym_car_race.SelfDriveEnv import Car, Track
+from gym_car_race.training_utils import TensorboardCallback, linear_schedule
+from gym_car_race.config import cfg
 
 
 # Set the directory where your models should be stored as well as the name of

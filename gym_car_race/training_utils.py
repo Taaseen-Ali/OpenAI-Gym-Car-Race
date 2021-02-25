@@ -4,8 +4,8 @@ import copy
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3 import PPO
 
-from SelfDriveEnv import Car, Track
-from config import cfg
+from gym_car_race.SelfDriveEnv import Car, Track
+from gym_car_race.config import cfg
 
 
 # ============================= #
