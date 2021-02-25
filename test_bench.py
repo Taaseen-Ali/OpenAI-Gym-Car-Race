@@ -3,14 +3,15 @@ import os
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import PPO
 
-from SelfDriveEnv import Car, Track
-from training_utils import TensorboardCallback, constant_schedule, linear_schedule, run_experiment, testing, with_changes
-from config import cfg
+from gym_car_race.SelfDriveEnv import Car, Track
+from gym_car_race.training_utils import TensorboardCallback, constant_schedule, linear_schedule, run_experiment, testing, with_changes
+from gym_car_race.config import cfg
+
 
 # Specify folders to save models/logs in
 
-model_dir = "learning-rate-tests"
-log_dir = "test-bench-logs"
+model_dir = "models"
+log_dir = "logs"
 
 os.makedirs(model_dir, exist_ok=True)
 
@@ -18,10 +19,10 @@ os.makedirs(model_dir, exist_ok=True)
 
 run_experiment(
 
-    testing("constant learning rate with .01",            
+      testing("constant learning rate with .01",            
         with_changes(
                 {
-                    "training": {
+                    "training": {                        
                         "learning_rate": constant_schedule(.01),
                         "log_dir": log_dir,
                     }
@@ -66,8 +67,20 @@ run_experiment(
         save_as="constant-003",
         in_dir=model_dir),
     
+    testing("constant learning rate with .001",            
+        with_changes(
+                {
+                    "training": {
+                        "learning_rate": constant_schedule(.001),
+                        "log_dir": log_dir,
+                    }
+                }
+            ),
+        save_as="constant-001",
+        in_dir=model_dir),
+
     timesteps=50000, 
     render=True,
-    trials=5,
+    trials=10,
     run_after_training=False,
 )
