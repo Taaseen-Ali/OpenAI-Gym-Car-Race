@@ -1,3 +1,5 @@
+<img src="./logo.svg"  align="right" width="40%"/>
+
 # OpenAI Gym Car Race
 
 An OpenAI Gym environment for simulating a self driving car on a race track. Built for [NYU SelfDrive](https://engineering.nyu.edu/research/vertically-integrated-projects/vip-teams/nyu-self-drive).
