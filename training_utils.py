@@ -14,6 +14,19 @@ from config import cfg
 
 
 def run(model, env, render=True):
+    """Runs trained model in env until done flag is raised
+
+    Parameters:
+        model: (stable_baselins3.BaseAlgorithm) 
+            Trained model to be run (i.e. the model returned by .load)
+        env: (SelfDriveEnv)
+            Environment for the model to be run on. Car should be added
+            before running this function
+        render: (bool) 
+            True to show the track and car as they run. False to only show
+            text output.
+    """
+    
     obs = env.reset()
     done = False
     total_reward = 0
@@ -29,6 +42,29 @@ def run(model, env, render=True):
 
 
 def run_experiment(*args, timesteps=10000, render=True, trials=1, run_after_training=False):
+    """Executes a suite of tests passed in as parameters
+
+    This function facilitates running multiple training cycles. The caller would
+    specify the various models to train/test by passing ina a variable number of
+    arguments (*args) each being a function that takes in an integer
+    representing the number of training timesteps as a parameter and returns a
+    tuple of length 3 containing the model to be run, the environment to be run
+    on, and a description of the test. It is recomended to use the testing api
+    to help with this. (see "testing" function
+    below)
+
+    *args: (callable[[int], (stable_baselines3.BaseAlgorithm, SelfDriveEnv,
+        str)]) Variable number of functions which each return a tuple containing
+        the model, environment and a description 
+    timesteps: (int) 
+        Number of timesteps to train each model for.
+    render: (bool)
+        True to render each simulation after training, false for text only output
+    trials: (int)
+        The number of times to run each test if run_after_training is set to True
+    run_after_training: (bool)
+        True to run each test after training, false otherwise
+    """
     to_run = []
     num_tests = len(args)
     print("Running %d models with %d training timesteps each for a total of %d timesteps" % (num_tests, timesteps, num_tests * timesteps))
@@ -50,6 +86,24 @@ def run_experiment(*args, timesteps=10000, render=True, trials=1, run_after_trai
 
 
 def testing(desc, config, save_as=None, in_dir=None):
+    """Creates a test function from config
+
+    This function returns another function which when called, trains a model
+    according to the provided config. If the model has already been trained, it
+    is loaded and returned instead.
+
+    Parameters:
+        desc: (str)
+            Description of the test being defined
+        config: (dict)
+            Dictionary containing all of the necessary config for the SelfDriveEnv
+        save_as: (str)
+            Name to save/load the trained model as
+        in_dir: (str)
+            Directory to save/load the model in
+    
+    Returns: A function of the form int->(stable_baslines3.BaseAlgorithm, SelfDriveEnv, str)
+    """
     def train(timesteps): 
         env = Track(config)
         car = Car(config)
@@ -70,6 +124,18 @@ def testing(desc, config, save_as=None, in_dir=None):
 
 
 def with_changes(changes):
+    """Creates config from default and specified changes
+
+    This function takes in any subset of configuration as defined in config.py
+    and returns a new config dictionary with all of the specified changes
+    applied to it
+
+    Paramters:
+        changes: (dict)    
+            Dictionary specifying the changes to be made to the default configs
+            found in config.py
+    """
+    
     updated = copy.deepcopy(cfg)
     for key in changes.keys():
         if key not in updated:
