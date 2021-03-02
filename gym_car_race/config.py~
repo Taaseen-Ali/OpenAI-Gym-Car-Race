@@ -10,6 +10,9 @@ cfg = {
     "car": {
         # Initial defaults
 
+        "position": [100, 100],     # Starting x, y position of the car. Note that
+                                    # this will be deprecated soon because of
+                                    # https://github.com/Taaseen-Ali/OpenAI-Gym-Car-Race/pull/7
         "width": 50,                # Box width/height of the car
         "height": 50,               
         "angle": 90,                # Initial direction of the car

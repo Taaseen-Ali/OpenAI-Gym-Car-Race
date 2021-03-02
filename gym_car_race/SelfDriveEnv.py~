@@ -181,9 +181,6 @@ class Track(gym.Env):
     def render(self):
         if not self._screen and self._initialized:
             self.open_window()
-        if not self._initialized:
-            print("initialize car first")
-            return
         self._screen.fill((30,30,30))
         self._clock.tick(60)
         for j in range(self._num_blocks_x+2):
