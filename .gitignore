@@ -3,3 +3,6 @@ __pycache__
 /models
 /logs
 /ppo
+example.py
+test_bench.py
+/gym_car_race/config.py

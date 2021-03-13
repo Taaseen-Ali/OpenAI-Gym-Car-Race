@@ -76,7 +76,7 @@ def run_experiment(*args, timesteps=10000, render=True, trials=1, run_after_trai
             run(model, env)
 
     for (model, env, desc) in to_run:
-        print("Running model testing \"%s\"" % desc)        
+        print("Running model to test \"%s\"" % desc)        
         sum_rewards = 0
         for i in range(trials):
             print("\t - Trial #%d:" % (i+1), end=" ", flush=True)            
