@@ -375,7 +375,7 @@ class Car:
         self.height = config["car"]['height']
         self.image = pygame.transform.scale(self.image, (self.width, self.height))        
         self.angle = config["car"]['angle']
-        self.pos = config["car"]["position"]
+        self.pos = [100, 100]
         
         self.crashed = False 
         self.has_finished = False
@@ -533,7 +533,7 @@ class Car:
         return observations, reward, self.done, {}
 
     def reset(self):
-        self.pos = self.config["car"]['position']
+        self.pos = [100, 100]
         self.angle = self.config["car"]['angle']
         self._center_sensors()
         self.crashed = False 
