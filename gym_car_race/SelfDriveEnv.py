@@ -55,7 +55,8 @@ class Track(gym.Env):
         super(Track, self).__init__()
         pygame.init()
         pygame.display.set_icon(pygame.image.load("gym_car_race/images/logo.png"))
-
+        pygame.display.set_caption("Gym Car Race -- NYU SelfDrive", "Gym Car Race")        
+        
         self.action_space = spaces.MultiDiscrete([3,3])
         """ self.action_space = DiscreteActions.get_action_space() """
         self.observation_space = spaces.Box(np.zeros((config["car"]["num_sensors"] + 2)), \
@@ -75,6 +76,7 @@ class Track(gym.Env):
         self.track = [[TrackBorder(x*self._block_width, y*self._block_height, self._block_width,
             self._block_height, (x,y)) for x in range(-1,self._num_blocks_x+1)
             ] for y in range(-1, self._num_blocks_y+1)]
+        
         self.cars = []
         self.start_locs = []    #start coordinates
         self.finish_locs = []   #finish coordinates
