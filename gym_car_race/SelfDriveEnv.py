@@ -102,7 +102,7 @@ class Track(gym.Env):
             y /= len(coords)
             coords = [x,y]
         else: coords = list(coords)
-        return coords
+        return coords if len(coords) == 2 else [coords[0][0], coords[0][1]] # sometimes we only set on start/end
 
     def open_window(self):
         self._screen = pygame.display.set_mode((self._screen_width, 
@@ -187,8 +187,9 @@ class Track(gym.Env):
             for k in range(self._num_blocks_y+2):
                 tile = self.track[k][j]
                 tile.render(self._screen)
-        for car in self.cars:
-            car.render(self._screen)        
+        if self._initialized:
+            for car in self.cars:
+                car.render(self._screen)        
         pygame.display.flip()
         self.handle_events()
     
@@ -213,10 +214,9 @@ class Track(gym.Env):
         else:
             self.load_track()
         
-        self.cars[0].reset()
         self.start_locs = self._calc_avg_pos("start")
         self.finish_locs = self._calc_avg_pos("finish")
-        self.cars[0].set_pos(self.start_locs)
+        self.cars[0].reset(self.start_locs)
         self._initialized = True            
         return self.cars[0]._get_observation()
     
@@ -375,7 +375,7 @@ class Car:
         self.height = config["car"]['height']
         self.image = pygame.transform.scale(self.image, (self.width, self.height))        
         self.angle = config["car"]['angle']
-        self.pos = config["car"]["position"]
+        self.pos = None
         
         self.crashed = False 
         self.has_finished = False
@@ -384,7 +384,6 @@ class Car:
         self.num_sensors = config["car"]["num_sensors"]
         self.sensors = [[0, 0,  i*(180.0/self.num_sensors), 0] for i in 
             range(self.num_sensors)]
-        self._center_sensors()
         self.speed = config["car"]['speed']
         self.rotation = config["car"]['rotation']
 
@@ -532,8 +531,8 @@ class Car:
         observations = self._get_observation()
         return observations, reward, self.done, {}
 
-    def reset(self):
-        self.pos = self.config["car"]['position']
+    def reset(self, coordinates):
+        self.set_pos(coordinates)
         self.angle = self.config["car"]['angle']
         self._center_sensors()
         self.crashed = False 

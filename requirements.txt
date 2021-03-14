@@ -3,3 +3,4 @@
 pygame
 gym
 stable-baselines3[extra]
+argparse
