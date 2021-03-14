@@ -187,8 +187,9 @@ class Track(gym.Env):
             for k in range(self._num_blocks_y+2):
                 tile = self.track[k][j]
                 tile.render(self._screen)
-        for car in self.cars:
-            car.render(self._screen)        
+        if self._initialized:
+            for car in self.cars:
+                car.render(self._screen)        
         pygame.display.flip()
         self.handle_events()
     
@@ -213,9 +214,9 @@ class Track(gym.Env):
         else:
             self.load_track()
         
-        self.cars[0].reset()
         self.start_locs = self._calc_avg_pos("start")
         self.finish_locs = self._calc_avg_pos("finish")
+        self.cars[0].reset()
         self.cars[0].set_pos(self.start_locs)
         self._initialized = True            
         return self.cars[0]._get_observation()
@@ -477,7 +478,8 @@ class Car:
         return (x + dist * cos(rad_angle), y + dist * sin(rad_angle))
         
     def set_pos(self, coords):
-        self.pos = coords
+        self.pos = [coords[0][0], coords[0][1]]
+        print("set", self.pos)
     
     def set_track(self, track):
         self.track = track
