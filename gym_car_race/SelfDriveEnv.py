@@ -102,8 +102,7 @@ class Track(gym.Env):
             y /= len(coords)
             coords = [x,y]
         else: coords = list(coords)
- 
-        return coords if len(coords) == 2 else [coords[0][0], coords[0][1]]
+        return coords if len(coords) == 2 else [coords[0][0], coords[0][1]] # sometimes we only set on start/end
 
     def open_window(self):
         self._screen = pygame.display.set_mode((self._screen_width, 
