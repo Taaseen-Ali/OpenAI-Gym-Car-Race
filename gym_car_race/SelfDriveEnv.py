@@ -181,17 +181,15 @@ class Track(gym.Env):
     def render(self):
         if not self._screen and self._initialized:
             self.open_window()
-        if not self._initialized:
-            print("initialize car first")
-            return
         self._screen.fill((30,30,30))
         self._clock.tick(60)
         for j in range(self._num_blocks_x+2):
             for k in range(self._num_blocks_y+2):
                 tile = self.track[k][j]
                 tile.render(self._screen)
-        for car in self.cars:
-            car.render(self._screen)        
+        if self._initialized:
+            for car in self.cars:
+                car.render(self._screen)        
         pygame.display.flip()
         self.handle_events()
     
@@ -535,7 +533,7 @@ class Car:
         return observations, reward, self.done, {}
 
     def reset(self):
-        self.pos = self.config["car"]['position']
+        self.pos = [0,0] 
         self.angle = self.config["car"]['angle']
         self._center_sensors()
         self.crashed = False 
