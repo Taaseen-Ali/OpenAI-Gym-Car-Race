@@ -36,13 +36,13 @@ env.add_car(car)
 # Uncomment one of the following depending on what you'd like to do
 
 # A. Use an existing model
-model = PPO.load(model_dir + model_name)
+# model = PPO.load(model_dir + model_name)
 
 # B. Create and train a new model
 timesteps = 10000
-#model = PPO('MlpPolicy', env, tensorboard_log="./ppo/", verbose=1)
-#model.learn(total_timesteps=timesteps, callback=TensorboardCallback()) 
-#model.save(model_dir + model_name)
+model = PPO('MlpPolicy', env, tensorboard_log="./ppo/", verbose=1)
+model.learn(total_timesteps=timesteps, callback=TensorboardCallback()) 
+model.save(model_dir + model_name)
 
 # Reset the env
 

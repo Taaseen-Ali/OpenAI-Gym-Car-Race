@@ -102,7 +102,8 @@ class Track(gym.Env):
             y /= len(coords)
             coords = [x,y]
         else: coords = list(coords)
-        return coords
+ 
+        return coords if len(coords) == 2 else [coords[0][0], coords[0][1]]
 
     def open_window(self):
         self._screen = pygame.display.set_mode((self._screen_width, 
@@ -216,8 +217,7 @@ class Track(gym.Env):
         
         self.start_locs = self._calc_avg_pos("start")
         self.finish_locs = self._calc_avg_pos("finish")
-        self.cars[0].reset()
-        self.cars[0].set_pos(self.start_locs)
+        self.cars[0].reset(self.start_locs)
         self._initialized = True            
         return self.cars[0]._get_observation()
     
@@ -376,7 +376,7 @@ class Car:
         self.height = config["car"]['height']
         self.image = pygame.transform.scale(self.image, (self.width, self.height))        
         self.angle = config["car"]['angle']
-        self.pos = [100, 100]
+        self.pos = None
         
         self.crashed = False 
         self.has_finished = False
@@ -385,7 +385,6 @@ class Car:
         self.num_sensors = config["car"]["num_sensors"]
         self.sensors = [[0, 0,  i*(180.0/self.num_sensors), 0] for i in 
             range(self.num_sensors)]
-        self._center_sensors()
         self.speed = config["car"]['speed']
         self.rotation = config["car"]['rotation']
 
@@ -478,8 +477,7 @@ class Car:
         return (x + dist * cos(rad_angle), y + dist * sin(rad_angle))
         
     def set_pos(self, coords):
-        self.pos = [coords[0][0], coords[0][1]]
-        print("set", self.pos)
+        self.pos = coords
     
     def set_track(self, track):
         self.track = track
@@ -534,8 +532,8 @@ class Car:
         observations = self._get_observation()
         return observations, reward, self.done, {}
 
-    def reset(self):
-        self.pos = [100, 100]
+    def reset(self, coordinates):
+        self.set_pos(coordinates)
         self.angle = self.config["car"]['angle']
         self._center_sensors()
         self.crashed = False 
