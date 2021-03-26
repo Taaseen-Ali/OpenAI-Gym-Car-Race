@@ -11,7 +11,7 @@ from gym import spaces
 from gym_car_race.config import cfg
 
 
-class Track(gym.Env):
+class Track(gym.Env): 
     """OpenAI gym environment simulating a car on a racetrack
 
     Most of the general configuration can be tweaked in config.py. Cars must be
