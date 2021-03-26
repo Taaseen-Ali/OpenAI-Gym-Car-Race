@@ -1,0 +1,10 @@
+- class: simulation
+    - state oxford dictionary
+    - fCost
+    - GCost
+    - prev_state
+
+- heuristic(start, end)
+
+- new action set
+- self.has_finished
