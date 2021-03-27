@@ -1,10 +1,9 @@
-- class: simulation
-    - state oxford dictionary
-    - fCost
-    - GCost
-    - prev_state
-
-- heuristic(start, end)
-
-- new action set
-- self.has_finished
+TD:
+    - class Node
+    - Track: Taaseen
+        - get state
+        - set state
+        - car action
+    - Find all nodes given class node
+        - Action List, define accel, decel etc
+    - A* algorithm (psuedo)
