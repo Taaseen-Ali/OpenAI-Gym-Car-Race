@@ -133,6 +133,8 @@ def astar(env, actions):
                 solution.append(curr.getPrev())
                 curr = curr.getPrev()
             solution.reverse()  # ordered from goal -> start. Need to reverse
+            # solution is a list containing nodes from start to finish
+            # what do we want to do with this list?
         else:
             explored.add(node)
             for child, action in generate_nodes(env, node, actions):
