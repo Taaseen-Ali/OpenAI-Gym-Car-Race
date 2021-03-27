@@ -112,9 +112,9 @@ def heuristic(node, goal):
     return heuristic
 
 
-def astar(env, track, actions):
+def astar(env, actions):
     start = Node(env.get_state())
-    # goal = Node(how are we going to get goal state?)
+    goal = None  # goal = Node(how are we going to get goal state?)
     explored = set()  # Set of nodes already explored, hashed for key
     solution = []
     start.setGCost(0)  # Path cost for start node is 0
@@ -143,7 +143,7 @@ def astar(env, track, actions):
                     if child_gCost < child.getGCost():
                         child.setPrev(node)
                         child.setGCost(child_gCost)
-                        
+
                     child.setFCost(child.getGCost() + heuristic(child, goal)) # line 122
                     frontier.reverse()
                     frontier.sort()
@@ -189,7 +189,7 @@ def main():
     actions = car.get_actions()
     obs = env.reset(new=args.ifreset)
 
-    astar(env, track, actions)
+    astar(env, actions)
 
 
 if __name__ == "__main__":
