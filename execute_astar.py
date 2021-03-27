@@ -118,7 +118,7 @@ def astar(env, actions):
     explored = set()  # Set of nodes already explored, hashed for key
     solution = []
     start.setGCost(0)  # Path cost for start node is 0
-    start.setFCost(heuristic + GCost)
+    start.setFCost(heuristic + start.getGCost())
     frontier = [start]  # Create frontier list, initialize with start node
     heapq.heapify(frontier)
 
