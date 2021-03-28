@@ -78,7 +78,8 @@ class Track(gym.Env):
         self.cars = []
         self.start_locs = []    #start coordinates
         self.finish_locs = []   #finish coordinates
-
+        self.total_steps = 0
+    
     def _calc_avg_pos(self, start_finish):
         """Calculates the average of either start_locs or finish_locs
         coordinates
@@ -216,7 +217,9 @@ class Track(gym.Env):
 
         self.start_locs = self._calc_avg_pos("start")
         self.finish_locs = self._calc_avg_pos("finish")
-        self.cars[0].reset(self.start_locs)
+        state = self.cars[0].default_state
+        state["pos"] = self.start_locs
+        self.cars[0].reset()
         self._initialized = True
         return self.cars[0]._get_observation()
 
@@ -238,16 +241,17 @@ class Track(gym.Env):
         car = self.cars[0] """
         """ obs, reward, done, _ = car.step(DiscreteActions.get_controls_from_action(action)) """
         car = self.cars[0]
+        self.total_steps += 1
         obs, reward, done, _ = car.step(action)
         return obs, reward, done, _
 
-    def set_state(self, dict):
-        self.cars[0].set_state(something in here)
+    def set_state(self, state):
+        self.cars[0].reset(state)
 
     def get_state(self):
-        return self.dict
-
-
+        state = self.cars[0].get_state()
+        state["steps"] = self.total_steps
+        return state
 
 class TrackBorder:
     """Class representing a single block on the simulation
@@ -413,6 +417,16 @@ class Car:
         self._calc_reward = config["reward"]["function"](self) if config["reward"]["function"] else self._default_step_reward
         self.reward_history = []
 
+        self.default_state = {"pos": None, 
+                              "angle": self.config["car"]["angle"],
+                              "speed": 0,
+                              "rotation": 0,
+                              "crashed": False,
+                              "has_finished": False,
+                              "done": False,
+                              "reward_history": []
+                              }
+
     @staticmethod
     def reward_function(f):
         """Decorator for creating custom reward functions
@@ -524,7 +538,6 @@ class Car:
         self.done = self.has_finished or self.crashed
 
         accel, rot = action
-
         if accel == self.ACCELERATE and self.speed < self.max_speed:
             self.speed += self.acceleration
         elif accel == self.DECELERATE and self.speed > self.acceleration:
@@ -538,15 +551,31 @@ class Car:
         observations = self._get_observation()
         return observations, reward, self.done, {}
 
-    def reset(self, coordinates):
-        self.set_pos(coordinates)
-        self.angle = self.config["car"]['angle']
+    def reset(self, state=None):
+        if not state:
+            state = self.default_state
+        self.set_pos(state["pos"])
+        self.angle = state["angle"]
+        self.speed = state["speed"]
+        self.rotation = state["rotation"]
         self._center_sensors()
-        self.crashed = False
-        self.has_finished = False
-        self.done = False
-        self.reward_history = []
+        self.crashed = state["crashed"]
+        self.has_finished = state["has_finished"]
+        self.done = state["done"]
+        self.reward_history = list.copy(state["reward_history"])
 
+    def get_state(self):
+        state = {"pos": self.pos, 
+                 "angle": self.angle,
+                 "speed": self.speed,
+                 "rotation": self.rotation,
+                 "crashed": self.crashed,
+                 "has_finished": self.has_finished,
+                 "done": self.done,
+                 "reward_history": self.reward_history
+                }
+        return state
+    
     def render(self, screen):
         rotated_image, new_rect = Utils.rotate_image(self.image, self.pos, self.angle)
         screen.blit(rotated_image, new_rect.topleft)
