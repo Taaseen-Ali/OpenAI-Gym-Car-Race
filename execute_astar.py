@@ -8,7 +8,7 @@ from collections import namedtuple
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import PPO
 
-from gym_car_race.SelfDriveEnv import Car, Track
+from gym_car_race.SelfDriveEnv import Car, Track, Utils
 from gym_car_race.training_utils import TensorboardCallback, linear_schedule
 from gym_car_race.config import cfg
 
@@ -105,16 +105,17 @@ def heuristic(node, goal):
     goal: Node
         The goal node for the problem
     """
-    heuristic = 0
+    # heuristic = 0
     # for i in range(len(node.getState())):  # i represents tile number with 0 being the blank tile
     #     # Indexes 0 and 1 are the column and row coordinates respectively
-    #     heuristic += (abs(goal.getState()[i][0] - node.getState()[i][0]) + abs(goal.getState()[i][1] - node.getState()[i][1]))
-    return heuristic
+    #     heuristic += (abs(goal.getState()[i][0] - node.getState()[i][0]) + abs(goal.getState()[i][1] - node.getState()[i][1])
+    # return heuristic
+    return Utils.dist(goal, node.getState(["pos"]))
 
 
 def astar(env, actions):
     start = Node(env.get_state())
-    goal = None  # goal = Node(how are we going to get goal state?)
+    goal = env.finish_locs  # goal = Node(how are we going to get goal state?)
     explored = set()  # Set of nodes already explored, hashed for key
     solution = []
     start.setGCost(0)  # Path cost for start node is 0
@@ -126,7 +127,7 @@ def astar(env, actions):
         node = heapq.heappop(frontier)
         frontier.reverse()
         frontier.sort()
-        if goal == node:
+        if node.getState()["has_finished"]:
             solution = [node]  # initialize solution list (tuple with goal node and action (action is None))
             curr = node
             while(curr.getPrev()):  # find all parent nodes and add to the solution
@@ -157,7 +158,8 @@ def generate_nodes(env, node, actions):
     children = []
     for action in actions:
         child = env.step(action).get_state()
-        children.append(child)
+        children.append(Node(child))
+        env.set_state(node.state)
     return children
 
 
