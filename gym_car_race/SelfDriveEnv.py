@@ -581,6 +581,11 @@ class Car:
         screen.blit(rotated_image, new_rect.topleft)
         for sensor in self.sensors:
             pygame.draw.circle(screen, self.sensor_color, (sensor[0], sensor[1]), 5)
+    
+    def get_actions(self):
+        acc = [self.ACCELERATE, self.REST, self.DECELERATE]
+        rot = [self.ACCEL_LEFT, self.REST, self.ACCEL_RIGHT]
+        return [(i, j) for i in acc for j in rot]
 
 
 class Utils:
