@@ -110,7 +110,7 @@ def heuristic(node, goal):
     #     # Indexes 0 and 1 are the column and row coordinates respectively
     #     heuristic += (abs(goal.getState()[i][0] - node.getState()[i][0]) + abs(goal.getState()[i][1] - node.getState()[i][1])
     # return heuristic
-    return Utils.dist(goal, node.getState(["pos"]))
+    return Utils.dist(goal, node.getState()["pos"])
 
 
 def astar(env, actions):
