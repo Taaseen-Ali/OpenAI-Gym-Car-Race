@@ -128,10 +128,10 @@ def astar(env, actions):
         frontier.reverse()
         frontier.sort()
         if node.getState()["has_finished"]:
-            solution = [node]  # initialize solution list (tuple with goal node and action (action is None))
+            solution = []  # initialize solution list (tuple with goal node and action (action is None))
             curr = node
             while(curr.getPrev()):  # find all parent nodes and add to the solution
-                solution.append(curr.getPrev())
+                solution.append(curr.getPrev()[1])
                 curr = curr.getPrev()
             solution.reverse()  # ordered from goal -> start. Need to reverse
             # solution is a list containing nodes from start to finish
@@ -144,7 +144,7 @@ def astar(env, actions):
 
                     # replace g(n) value with better f(n) value if necessary (essentially having best version of child node in frontier)
                     if child_gCost < child.getGCost():
-                        child.setPrev(node)
+                        child.setPrev(node, action)
                         child.setGCost(child_gCost)
 
                     child.setFCost(child.getGCost() + heuristic(child, goal)) # line 122
@@ -158,7 +158,7 @@ def generate_nodes(env, node, actions):
     children = []
     for action in actions:
         child = env.step(action).get_state()
-        children.append(Node(child))
+        children.append(Node(child), action)
         env.set_state(node.state)
     return children
 
@@ -193,8 +193,11 @@ def main():
     actions = car.get_actions()
     obs = env.reset(new=args.ifreset)
 
-    astar(env, actions)
+    solution_actions = astar(env, actions)
 
+    for action in solution_actions:
+        obs, rewards, done, info = env.step(action)
+        env.render()
 
 if __name__ == "__main__":
     main()
