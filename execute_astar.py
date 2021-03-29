@@ -155,6 +155,7 @@ def astar(env, actions):
                     frontier.reverse()
                     frontier.sort()
                     heapq.heappush(frontier, child)  # push child into frontier
+    return solution        
 
 
 def generate_nodes(env, node, actions):
@@ -203,14 +204,18 @@ def main():
     car = Car()
     env.add_car(car)
     actions = car.get_actions()
-    obs = env.reset(new=args.ifreset)
+    obs = env.reset(new=False)
 
     solution_actions = astar(env, actions)
 
-    for action in solution_actions:
+    total_actions = []
+    obs = env.reset(new=False)
+    for action in solution_actions:        
         for step in action:
-            obs, rewards, done, info = env.step(action)
+            obs, rewards, done, info = env.step(step)
             env.render()
-        
+        total_actions += action
+    
+    print(total_actions)
 if __name__ == "__main__":
     main()
