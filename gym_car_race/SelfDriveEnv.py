@@ -583,9 +583,12 @@ class Car:
             pygame.draw.circle(screen, self.sensor_color, (sensor[0], sensor[1]), 5)
     
     def get_actions(self):
-        acc = [self.ACCELERATE, self.REST, self.DECELERATE]
-        rot = [self.ACCEL_LEFT, self.REST, self.ACCEL_RIGHT]
-        return [(i, j) for i in acc for j in rot]
+        """ acc = [self.ACCELERATE, self.REST, self.DECELERATE]
+        rot = [self.ACCEL_LEFT, self.REST, self.ACCEL_RIGHT] """
+        forward = [(self.ACCELERATE, self.REST)] * 10
+        left = [(self.ACCELERATE, self.ACCEL_LEFT)] * 10
+        right = [(self.ACCELERATE, self.ACCEL_RIGHT)] * 10
+        return [forward, left, right]
 
 
 class Utils:
