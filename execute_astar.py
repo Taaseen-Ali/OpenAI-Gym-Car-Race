@@ -119,7 +119,7 @@ def astar(env, actions):
     explored = set()  # Set of nodes already explored, hashed for key
     solution = []
     start.setGCost(0)  # Path cost for start node is 0
-    start.setFCost(heuristic + start.getGCost())
+    start.setFCost((heuristic(start, goal)) + start.getGCost())
     frontier = [start]  # Create frontier list, initialize with start node
     heapq.heapify(frontier)
 
@@ -198,6 +198,7 @@ def main():
     for action in solution_actions:
         obs, rewards, done, info = env.step(action)
         env.render()
+
 
 if __name__ == "__main__":
     main()
