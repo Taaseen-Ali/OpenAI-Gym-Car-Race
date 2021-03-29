@@ -41,7 +41,7 @@ class Node:
                         True if either the car has finished or crashed, false otherwise
         """
         self.state = state  # Car state attributes listed above
-        
+
         # Initialize both f(n) and g(n) values to infinity. Finds the better
         # node using < operator. f(n) and g(n) are set in the algorithm after
         # exploration, so this doesn't matter.
@@ -156,9 +156,11 @@ def astar(env, actions):
                     frontier.sort()
                     heapq.heappush(frontier, child)  # push child into frontier
 
+        return solution
+
 
 def generate_nodes(env, node, actions):
-    node.state["reward_history"] = list(node.state["reward_history"])           
+    node.state["reward_history"] = list(node.state["reward_history"])
     env.set_state(node.state)
     children = []
     for action in actions:
@@ -167,11 +169,11 @@ def generate_nodes(env, node, actions):
             env.render()
         child = env.get_state()
         child["pos"] = tuple(child["pos"])
-        child["reward_history"] = tuple(child["reward_history"])        
+        child["reward_history"] = tuple(child["reward_history"])
         if not child["crashed"]:
             children.append((Node(child), action))
         env.set_state(node.state)
-    node.state["reward_history"] = tuple(node.state["reward_history"])           
+    node.state["reward_history"] = tuple(node.state["reward_history"])
     return children
 
 
@@ -211,6 +213,6 @@ def main():
         for step in action:
             obs, rewards, done, info = env.step(action)
             env.render()
-        
+
 if __name__ == "__main__":
     main()
