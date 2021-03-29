@@ -15,7 +15,7 @@ from gym_car_race.config import cfg
 
 class Node:
 
-    def __init__(self, dict):
+    def __init__(self, state):
         """
         Creates/Initializes a Node object from a dictionary
         ----------
@@ -40,8 +40,8 @@ class Node:
                     done:           (bool)
                         True if either the car has finished or crashed, false otherwise
         """
-        self.state = dict  # Car state attributes listed above
-
+        self.state = state  # Car state attributes listed above
+        
         # Initialize both f(n) and g(n) values to infinity. Finds the better
         # node using < operator. f(n) and g(n) are set in the algorithm after
         # exploration, so this doesn't matter.
@@ -114,12 +114,16 @@ def heuristic(node, goal):
 
 
 def astar(env, actions):
-    start = Node(env.get_state())
+    state = env.get_state()
+    state["pos"] = tuple(state["pos"])
+    state["reward_history"] = tuple(state["reward_history"])
+    print(state)
+    start = Node(state)
     goal = env.finish_locs  # goal = Node(how are we going to get goal state?)
     explored = set()  # Set of nodes already explored, hashed for key
     solution = []
     start.setGCost(0)  # Path cost for start node is 0
-    start.setFCost((heuristic(start, goal)) + start.getGCost())
+    start.setFCost(heuristic(start, goal) + start.getGCost())
     frontier = [start]  # Create frontier list, initialize with start node
     heapq.heapify(frontier)
 
@@ -154,12 +158,17 @@ def astar(env, actions):
 
 
 def generate_nodes(env, node, actions):
+    node.state["reward_history"] = list(node.state["reward_history"])           
     env.set_state(node.state)
     children = []
     for action in actions:
-        child = env.step(action).get_state()
-        children.append(Node(child), action)
+        env.step(action)
+        child = env.get_state()
+        child["pos"] = tuple(child["pos"])
+        child["reward_history"] = tuple(child["reward_history"])        
+        children.append((Node(child), action))
         env.set_state(node.state)
+    node.state["reward_history"] = tuple(node.state["reward_history"])           
     return children
 
 
@@ -198,7 +207,6 @@ def main():
     for action in solution_actions:
         obs, rewards, done, info = env.step(action)
         env.render()
-
 
 if __name__ == "__main__":
     main()
