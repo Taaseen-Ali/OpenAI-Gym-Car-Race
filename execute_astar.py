@@ -117,7 +117,7 @@ def astar(env, actions):
     state = env.get_state()
     state["pos"] = tuple(state["pos"])
     state["reward_history"] = tuple(state["reward_history"])
-    print(state)
+
     start = Node(state)
     goal = env.finish_locs  # goal = Node(how are we going to get goal state?)
     explored = set()  # Set of nodes already explored, hashed for key
@@ -136,7 +136,7 @@ def astar(env, actions):
             curr = node
             while(curr.getPrev()):  # find all parent nodes and add to the solution
                 solution.append(curr.getPrev()[1])
-                curr = curr.getPrev()
+                curr = curr.getPrev()[0]
             solution.reverse()  # ordered from goal -> start. Need to reverse
             # solution is a list containing nodes from start to finish
             # what do we want to do with this list?
@@ -162,11 +162,14 @@ def generate_nodes(env, node, actions):
     env.set_state(node.state)
     children = []
     for action in actions:
-        env.step(action)
+        for step in action:
+            env.step(step)
+            env.render()
         child = env.get_state()
         child["pos"] = tuple(child["pos"])
         child["reward_history"] = tuple(child["reward_history"])        
-        children.append((Node(child), action))
+        if not child["crashed"]:
+            children.append((Node(child), action))
         env.set_state(node.state)
     node.state["reward_history"] = tuple(node.state["reward_history"])           
     return children
@@ -205,8 +208,9 @@ def main():
     solution_actions = astar(env, actions)
 
     for action in solution_actions:
-        obs, rewards, done, info = env.step(action)
-        env.render()
-
+        for step in action:
+            obs, rewards, done, info = env.step(action)
+            env.render()
+        
 if __name__ == "__main__":
     main()
