@@ -598,7 +598,7 @@ class Utils:
     def dist(p0, p1):
         x0, y0 = p0
         x1, y1 = p1
-        return ((x0-x1)**2 + (y0-y1)**2)**.5
+        return ((x0-x1)**2 + (y0-y1)**2)**.5 
 
     @staticmethod
     def rotate(coord, angle, center):
