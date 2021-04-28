@@ -5,7 +5,6 @@ others probably would as well) feel free to add it in and open a pull request on
 the repo: https://github.com/Taaseen-Ali/OpenAI-Gym-Car-Race
 """
 
-# Potato Peeps contest submission v1
 # Default car settings
 cfg = {
     "car": {
@@ -25,10 +24,10 @@ cfg = {
 
         # Car movement
 
-        "acceleration": 0.4,  # The acceleration of the car
-        "max_speed": 5,  # Top speed
-        "turn_rate": 0.2,  # How quickly the car is able to turn
-        "max_turn_rate": 4  # Maximum turning ability of the car
+        "acceleration": 1.5,  # The acceleration of the car
+        "max_speed": 3.5,  # Top speed
+        "turn_rate": 2.2,  # How quickly the car is able to turn
+        "max_turn_rate": 1.5  # Maximum turning ability of the car
     },
 
     # Default track settings
@@ -60,13 +59,12 @@ cfg = {
     # Reward values
 
     "reward": {
-        "new_tile_reward": 10,  # Reward for reaching a new tile
+        "new_tile_reward": 1.7,  # Reward for reaching a new tile
         "min_speed": 0,
-        "same_tile_reward": .1,  # Reward for staying alive
-        "same_tile_penalty": -.1,  # Penalty for not moving to a new tile
-        "crash_reward": -100,  # Penalty for crashing
-        "finish_reward": 100,  # Reward for reaching finish line
-
+        "same_tile_reward": .9,  # Reward for staying alive
+        "same_tile_penalty": -.7,  # Penalty for not moving to a new tile
+        "crash_reward": -1000,  # Penalty for crashing
+        "finish_reward": 1000,
         "function": None,  # Reward function to use. Default
         # implementation will be used if
         # none is specified
