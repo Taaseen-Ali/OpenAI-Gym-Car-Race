@@ -21,10 +21,10 @@ os.makedirs(model_dir, exist_ok=True)
 # i.e. "from contest.<my_team_name> import cfg as <my_team_name>"
 
 # Import here:
-from contest.example_team import cfg as example_team
+from contest.crepe import cfg as crepe
 
 # Set log dir here:
-example_team["training"]["log_dir"] = log_dir
+crepe["training"]["log_dir"] = log_dir
 
 
 # ================
@@ -40,7 +40,7 @@ def example_team_reward_func(car):
     return 1
 
 # and then add it to your config like this:
-example_team["reward"]["function"] = example_team_reward_func
+crepe["reward"]["function"] = example_team_reward_func
 
 # Get set...
 
@@ -51,7 +51,7 @@ example_team["reward"]["function"] = example_team_reward_func
 
 teams = [
 #   testing("<my_team_name>", with_changes(<my_team_name>), save_as="<my_team_name>", in_dir=model_dir),
-    testing("Team Example", with_changes(example_team), save_as="example_team", in_dir=model_dir),
+    testing("crepe", with_changes(crepe), save_as="crepe", in_dir=model_dir),
 ]
 
 run_experiment(
