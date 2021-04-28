@@ -22,10 +22,11 @@ os.makedirs(model_dir, exist_ok=True)
 
 # Import here:
 from contest.example_team import cfg as example_team
+from contest.potato_peeps import cfg as potato_peeps
 
 # Set log dir here:
 example_team["training"]["log_dir"] = log_dir
-
+potato_peeps["training"]["log_dir"] = log_dir
 
 # ================
 # Reward Functions
@@ -52,6 +53,7 @@ example_team["reward"]["function"] = example_team_reward_func
 teams = [
 #   testing("<my_team_name>", with_changes(<my_team_name>), save_as="<my_team_name>", in_dir=model_dir),
     testing("Team Example", with_changes(example_team), save_as="example_team", in_dir=model_dir),
+    testing("Potato Peeps", with_changes(potato_peeps), save_as = "potato_peeps", in_dir = model_dir),
 ]
 
 run_experiment(
