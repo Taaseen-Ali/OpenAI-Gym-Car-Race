@@ -27,8 +27,8 @@ cfg = {
         
         "acceleration": 0.4,        # The acceleration of the car
         "max_speed": 5,             # Top speed 
-        "turn_rate": 0.2,           # How quickly the car is able to turn
-        "max_turn_rate": 4          # Maximum turning ability of the car 
+        "turn_rate": 0.03,          # How quickly the car is able to turn
+        "max_turn_rate": 0.8        # Maximum turning ability of the car 
         },
 
 
@@ -76,7 +76,7 @@ cfg = {
     # Training default configs
     
     "training": {
-        "learning_rate": lambda progress: .0007,    # Schedule function for specifying 
+        "learning_rate": lambda progress: .0002,    # Schedule function for specifying 
                                                     # learning rate. Progress is a float 
                                                     # from 0-1 denoting how much of the 
                                                     # training has been completed relative 
