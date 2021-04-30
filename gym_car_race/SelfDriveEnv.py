@@ -401,7 +401,8 @@ class Car:
         self.ACCELERATE = config["action"]['accelerate']
         self.ACCEL_LEFT = config["action"]['accel_left']
         self.ACCEL_RIGHT = config["action"]['accel_right']
-    
+        
+        self.next_action = None
         self.NEW_TILE_REWARD = config["reward"]['new_tile_reward']
         self.SAME_TILE_REWARD = config["reward"]['same_tile_reward']
         self.CRASH_REWARD = config["reward"]['crash_reward']
@@ -501,7 +502,7 @@ class Car:
     
     def move(self):
         if not self.done:
-            self.angle += self.rotation
+            self.angle += self.rotation * self.speed
             self.pos = self._move_forward(self.speed)
             curr_tile = self.track.current_tile(self)
             
@@ -530,6 +531,7 @@ class Car:
         elif rot == self.ACCEL_RIGHT and self.rotation > -self.max_turn_rate:
             self.rotation -= self.turn_rate
         
+        self.next_action = action
         reward = self.move()
         observations = self._get_observation()
         return observations, reward, self.done, {}

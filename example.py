@@ -4,15 +4,16 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import PPO
 
 from gym_car_race.SelfDriveEnv import Car, Track
-from gym_car_race.training_utils import TensorboardCallback, linear_schedule
+from gym_car_race.training_utils import TensorboardCallback, linear_schedule, with_changes
 from gym_car_race.config import cfg
+config = with_changes({"car": {"turn_rate": 0.03, "max_turn_rate": 0.8 }})
 
 
 # Set the directory where your models should be stored as well as the name of
 # the model that you want to load/save
 
-model_dir = "./models/"
-model_name = "model1"
+model_dir = "./models/tests/alternate-track-new-turning/"
+model_name = "turn-rate-3-max-80"
 os.makedirs(model_dir, exist_ok=True)
 
 # Set up the environment using the values found in configs
@@ -29,18 +30,18 @@ env.add_car(car)
 # Uncomment one of the following depending on what you'd like to do
 
 # A. Use an existing model
-# model = PPO.load(model_dir + model_name)
+model = PPO.load(model_dir + model_name)
 
 # B. Create and train a new model
-timesteps = 10000
+""" timesteps = 10000
 model = PPO('MlpPolicy', env, tensorboard_log="./ppo/", verbose=1)
 model.learn(total_timesteps=timesteps, callback=TensorboardCallback()) 
 model.save(model_dir + model_name)
-
+ """
 # Reset the env
 
-env = Track()
-car = Car()
+env = Track(config)
+car = Car(config)
 env.add_car(car)
 
 obs = env.reset(new=False) # You can set new=True if you'd like to create a new track

@@ -1,4 +1,5 @@
 """SelfDrive Environement config
+
 Use this file to help customize various aspects of the simulations. If you find
 additional things in the simulation that you'd like to customize (and think
 others probably would as well) feel free to add it in and open a pull request on
@@ -60,11 +61,11 @@ cfg = {
     # Reward values
                                     
     "reward": {
-        "new_tile_reward" : 10,     # Reward for reaching a new tile
-        "min_speed": 0,           
-        "same_tile_reward" : .1,    # Reward for staying alive
-        "same_tile_penalty": -.1,   # Penalty for not moving to a new tile
-        "crash_reward" : -100,       # Penalty for crashing
+        "new_tile_reward" : 1,     # Reward for reaching a new tile
+        "min_speed": 0.4,           
+        "same_tile_reward" : 1,   
+        "same_tile_penalty": -1,   # Penalty for not moving to a new tile
+        "crash_reward" : -20,       # Penalty for crashing
         "finish_reward": 100,       # Reward for reaching finish line
         
         "function": None,           # Reward function to use. Default 
@@ -75,12 +76,12 @@ cfg = {
     # Training default configs
     
     "training": {
-        "learning_rate": lambda progress: .0003,    # Schedule function for specifying 
+        "learning_rate": lambda progress: .0007,    # Schedule function for specifying 
                                                     # learning rate. Progress is a float 
                                                     # from 0-1 denoting how much of the 
                                                     # training has been completed relative 
                                                     # to total_timesteps
         
-        "log_dir": "logs"                           # Directory to store tensorboard logs
+        "log_dir": "logs/alternate-track"                        # Directory to store tensorboard logs
         }
 }
