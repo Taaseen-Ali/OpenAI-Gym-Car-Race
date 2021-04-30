@@ -1,4 +1,5 @@
 import os
+import argparse
 
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3 import PPO
@@ -14,6 +15,12 @@ from gym_car_race.config import cfg
 model_dir = "./models/"
 model_name = "model1"
 os.makedirs(model_dir, exist_ok=True)
+
+# load args from user's command input
+parser = argparse.ArgumentParser()
+parser.description='To customize your map: use command python example.py -reset=True'
+parser.add_argument("-reset", "--input if reset map", help="False- using default map, True - Create your own map", dest="ifreset", type=bool, default=False)
+args = parser.parse_args()
 
 # Set up the environment using the values found in configs
 
@@ -43,7 +50,7 @@ env = Track()
 car = Car()
 env.add_car(car)
 
-obs = env.reset(new=False) # You can set new=True if you'd like to create a new track
+obs = env.reset(new=args.ifreset) # You can set new=True if you'd like to create a new track
 
 # Run the simulation until the car crashes or finishes
 
